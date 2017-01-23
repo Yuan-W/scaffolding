@@ -1,5 +1,5 @@
 import os,sys
-sys.path.append(os.path.abspath("../src"))
+sys.path.append(os.path.abspath("src"))
 import json
 import hints_provider
 import unittest
