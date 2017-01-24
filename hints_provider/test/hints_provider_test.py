@@ -1,7 +1,6 @@
 import os,sys
-sys.path.append(os.path.abspath("src"))
 import json
-import hints_provider
+from ..hints_provider import hints_provider
 import unittest
 
 student_id = 1

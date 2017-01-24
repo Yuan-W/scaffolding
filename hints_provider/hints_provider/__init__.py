@@ -1,0 +1,1 @@
+from .hints_provider import app
