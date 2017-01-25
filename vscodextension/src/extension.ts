@@ -27,18 +27,18 @@ export function activate(context: vscode.ExtensionContext) {
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
 
-    const codeChanges = new CodeChanges;
-    const sender = new CodeChangeSender(codeChanges);
-
-    let listener = vscode.workspace.onDidChangeTextDocument(documentTextChangeHandler(codeChanges, sender));
-
-    context.subscriptions.push(listener);
-    
-    let disposable = vscode.commands.registerCommand('extension.scaffold', () => {
+    let disposable = vscode.commands.registerCommand('extension.scaffoldStart', () => {
         // The code you place here will be executed every time your command is executed
 
         // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World!');
+        vscode.window.showInformationMessage('Start Coding');
+
+        const codeChanges = new CodeChanges;
+        const sender = new CodeChangeSender(codeChanges);
+
+        let listener = vscode.workspace.onDidChangeTextDocument(documentTextChangeHandler(codeChanges, sender));
+
+        context.subscriptions.push(listener);
     });
 
     context.subscriptions.push(disposable);
