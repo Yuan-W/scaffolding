@@ -1,7 +1,9 @@
 import httplib
 import logging.handlers
-import os
+import os,copy
 import socket
+import json
+
 
 from flask import Flask, request, make_response, jsonify
 
@@ -37,15 +39,24 @@ def jerror(msg=u"Invalid data!", code=200):
 def site_view():
     """Data posted to this view is in json format."""
     app.logger.info("received [{0.path}] {0.data}".format(request))
+    
+    new_request = json.loads(request.data)
+
+    # hard coded values for now to match hints_provider input
+    new_request['student_id'] = 1
+    new_request['exercise_id'] = 101
+
+    print json.dumps(new_request)
 
     # I could do more checks here
     if request.json:
         try:
             res = requests.post(xconfig.EXTERNAL_SERVER_URL,
-                                data=request.data,
+                                data=json.dumps(new_request),
                                 headers={
                                     'Content-Type': 'application/json'
                                 })
+            print res.text
         except requests.exceptions.RequestException as err:
             msg = str(err)
             try:
