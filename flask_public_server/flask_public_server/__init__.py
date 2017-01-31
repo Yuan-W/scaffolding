@@ -1,0 +1,1 @@
+from .flaskpublicserver import app
