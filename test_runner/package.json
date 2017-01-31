@@ -1,0 +1,30 @@
+{
+  "name": "test_runner",
+  "version": "1.0.0",
+  "main": "app.js",
+  "config": {
+    "ut": "{,!(node_modules)/**/}*.test.js"
+  },
+  "scripts": {
+    "start": "babel-node ./app.js",
+    "dev": "node-dev ./app.js -r babel-core/register",
+    "test": "NODE_PATH=. mocha --compilers js:babel-core/register --reporter mocha-better-spec-reporter ${npm_package_config_ut}"
+  },
+  "dependencies": {
+    "babel-cli": "^6.22.2",
+    "babel-preset-es2015": "^6.22.0",
+    "es6-promisify": "^5.0.0",
+    "exports": "*",
+    "express": "2.5.11",
+    "express-brute": "*",
+    "morgan": "^1.7.0"
+  },
+  "author": "Osman Ali",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "mocha-better-spec-reporter": "^3.1.0",
+    "node-dev": "^3.1.3"
+  }
+}
