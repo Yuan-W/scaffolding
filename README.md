@@ -4,7 +4,7 @@
 
 ## Current Structure
 
-<center> ![sturcuture](structure.pdf) </center>
+<center> ![sturcuture](https://www.dropbox.com/s/uagmfuy3o1vjf64/structure.pdf?raw=1) </center>
 
 [Link to the diagram](https://www.lucidchart.com/invitations/accept/56fab060-db54-4f7a-aeba-22e1647b0796)
 

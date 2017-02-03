@@ -1,19 +1,17 @@
-from flask import Flask
+import sys
+from flask import Flask, jsonify
 from flask_restful import reqparse, Api, Resource, marshal_with, fields
+import json
+import requests
 
 app = Flask(__name__)
 api = Api(app)
 
-resource_fields = {
-    'student_id':   fields.Integer,
-    'exercise_id':  fields.Integer,
-    'time_spent':   fields.Integer,
-    'test_status':  fields.Raw
-}
-
 parser = reqparse.RequestParser()
 parser.add_argument('exercise_id', type=int, location='json', required=True, help='exercise_id must exists and be a integer')
+parser.add_argument('student_id', type=int, location='json', required=True, help='student_id must exists and be a integer')
 parser.add_argument('time_spent', type=int, location='json', required=True, help='time_spent must exists and be a integer')
+parser.add_argument('code', location='json', required=True, help='code must exists')
 parser.add_argument('test_status', location='json', required=True, help='test_status must exists')
 
 class Stats(object):
@@ -24,10 +22,25 @@ class Stats(object):
     self.test_status = test_status
 
 class StatsUpdater(Resource):
-  @marshal_with(resource_fields)
   def post(self, student_id):
     args = parser.parse_args()
-    return Stats(student_id, args['exercise_id'], args['time_spent'], args['test_status'])
+    data = dict()
+    data['exercise_id'] = args['exercise_id']
+    data['student_id'] = args['student_id']
+    data['student_id'] = args['student_id']
+    data['time_spent'] = args['time_spent']
+    data['code'] = args['code']
+    if sys._called_from_test:
+        db_url = 'http://localhost:5984'
+    else:
+        db_url = 'http://10.0.1.6:5984'
+    response = requests.post('%s/progress/' % db_url,
+                                data=json.dumps(data),
+                                headers={
+                                    'Content-Type': 'application/json'
+                                })
+
+    return response.json(), response.status_code
 
 
 api.add_resource(StatsUpdater, '/<int:student_id>')
