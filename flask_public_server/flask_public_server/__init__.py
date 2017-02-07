@@ -1,1 +1,1 @@
-from .flaskpublicserver import app
+from .flask_public_server import app

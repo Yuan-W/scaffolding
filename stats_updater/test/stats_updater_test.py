@@ -50,7 +50,6 @@ class StatsUpdaterTestCase(unittest.TestCase):
 
     def test_complete_post(self):
         response = post(self.app, test_status, time_spent, exercise_id, student_id, code)
-        print response.data
         json_data = json.loads(response.data)
         self.assertEqual(response.status_code, 201)
 
