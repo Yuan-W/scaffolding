@@ -35,6 +35,51 @@ def jerror(msg=u"Invalid data!", code=400):
     response.headers['Content-Type'] = 'application/json'
     return response
 
+@app.route('/stats', methods=['GET'])
+def site_get():
+
+    new_request = json.loads(request.data)
+
+    print json.dumps(new_request)
+
+    if request.json:
+            try:
+
+                res = requests.post(xconfig.EXTERNAL_SERVER_URL_STATS_ANALYSIS,
+                                                data=json.dumps(new_request),
+                                                headers={
+                                                    'Content-Type': 'application/json'
+                                                })
+
+            except requests.exceptions.RequestException as err:
+                msg = str(err)
+                try:
+                    msg = msg.decode('utf8')
+                except UnicodeDecodeError:
+                    msg = msg.decode('Windows-1252')
+                return jerror(msg=msg, code=500)
+
+
+            if res.status_code != 200:
+                    return jerror()
+
+            # Reads data from external server
+            jdata = res.text
+
+            # Prepare the return response.
+            response = make_response(jdata, 200)
+
+            # Uses the server header
+            ctype = res.headers.get('content-type')
+
+            if ctype is not None:
+                response.headers['content-type'] = ctype
+                app.logger.info('server content-type: {0:s}'.format(ctype))
+
+            return response
+
+    return jerror()
+
 
 @app.route('/site', methods=['POST'])
 def site_view():
