@@ -101,5 +101,5 @@ if __name__ == '__main__':
     manager.setup(app)
     manager.add_viewdef(docs_by_exercise)
     manager.sync(app)
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5005)
 
