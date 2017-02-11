@@ -26,6 +26,11 @@ handler = logging.handlers.RotatingFileHandler(
     backupCount=3)
 app.logger.addHandler(handler)
 
+def get_instrcutor_id(token):
+    if token == '':
+        return 0
+    return 1
+
 # aux
 POST = 'POST'
 
@@ -37,48 +42,30 @@ def jerror(msg=u"Invalid data!", code=400):
 
 @app.route('/stats', methods=['GET'])
 def site_get():
+    token = 'dhjkadlalddajdajksdhkad'
+    instructor_id = get_instrcutor_id(token)
+    if instructor_id:
+        res = requests.get('%s/%d' % (xconfig.EXTERNAL_SERVER_URL_STATS_ANALYSIS, instructor_id))
 
-    new_request = json.loads(request.data)
+        if res.status_code != 200:
+            return jsonify(res.text), res.status_code
 
-    print json.dumps(new_request)
+        # Reads data from external server
+        jdata = res.text
 
-    if request.json:
-            try:
+        # Prepare the return response.
+        response = make_response(jdata, 200)
 
-                res = requests.post(xconfig.EXTERNAL_SERVER_URL_STATS_ANALYSIS,
-                                                data=json.dumps(new_request),
-                                                headers={
-                                                    'Content-Type': 'application/json'
-                                                })
+        # Uses the server header
+        ctype = res.headers.get('content-type')
 
-            except requests.exceptions.RequestException as err:
-                msg = str(err)
-                try:
-                    msg = msg.decode('utf8')
-                except UnicodeDecodeError:
-                    msg = msg.decode('Windows-1252')
-                return jerror(msg=msg, code=500)
+        if ctype is not None:
+            response.headers['content-type'] = ctype
+            app.logger.info('server content-type: {0:s}'.format(ctype))
 
+        return jsonify(res.text)
 
-            if res.status_code != 200:
-                    return jerror()
-
-            # Reads data from external server
-            jdata = res.text
-
-            # Prepare the return response.
-            response = make_response(jdata, 200)
-
-            # Uses the server header
-            ctype = res.headers.get('content-type')
-
-            if ctype is not None:
-                response.headers['content-type'] = ctype
-                app.logger.info('server content-type: {0:s}'.format(ctype))
-
-            return response
-
-    return jerror()
+    return 401
 
 
 @app.route('/site', methods=['POST'])
