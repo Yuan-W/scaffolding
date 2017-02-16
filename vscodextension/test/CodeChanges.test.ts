@@ -15,53 +15,30 @@ suite('CodeChanges', () => {
     });
 
     test('When CodeChanges is instantiated, it sets `changes` to {}', () => {
-        expect(codeChanges.getChanges()).to.deep.equal({});
+        expect(codeChanges.getChanges()).to.deep.equal([]);
     });
 
     suite('#updateChanges', () => {
 
         test('When called with documentId and newText and documentId is not in `changes` creates a new array of changes with element newText', () => {
-            codeChanges.updateChanges('id', 'text');
+            codeChanges.updateChanges('text');
             const updateObject = {
                 date: undefined,
-                text: 'text'
+                code: 'text'
             };
-            expect(codeChanges.getChanges().id).to.deep.equal([updateObject]);
+            expect(codeChanges.getChanges()).to.deep.equal([ updateObject ]);
         });
 
         test('When called with documentId and newText and documentId is in `changes` append to current array of changes', () => {
-            const initialChanges = {
-                id: [
-                    {
-                        date: 1,
-                        text: 'text',
-                    }
-                ]
-            };
+            const initialChanges = [
+                {
+                    date: 1,
+                    code: 'text',
+                }
+            ];
             codeChanges = new CodeChanges(initialChanges);
-            codeChanges.updateChanges('id', 'newText', 2);
-            expect(codeChanges.getChanges().id).to.deep.equal([ ...initialChanges.id, { date: 2, text: 'newText' }]);
-        });
-
-        test('When called with documentId and newText, it does not mutate data under any other id', () => {
-            const prevChanges = {
-                foo: [
-                    {
-                        date: 1,
-                        text: 'bar'
-                    }
-                ],
-                baz: [
-                    {
-                        date: 2,
-                        text: 'foobar'
-                    }
-                ]
-            };
-            codeChanges = new CodeChanges(prevChanges);
-            codeChanges.updateChanges('id', 'newText');
-            const { id, ...rest } = codeChanges.getChanges();
-            expect(rest).to.deep.equal(prevChanges);
+            codeChanges.updateChanges('newText', 2);
+            expect(codeChanges.getChanges()).to.deep.equal([...initialChanges, { date: 2, code: 'newText' }]);
         });
 
     });

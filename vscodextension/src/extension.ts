@@ -8,9 +8,8 @@ import CodeChangeSender from './CodeChangeSender';
 export function documentTextChangeHandler(codeChanges, sender) {
     return (e) => {
         const { document } = e;
-        const id = document.uri.toString();
         const text = document.getText();
-        codeChanges.updateChanges(id, text);
+        codeChanges.updateChanges(text);
         sender.resetSendInterval(5000);
     };
 }

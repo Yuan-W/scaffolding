@@ -4,7 +4,7 @@ class CodeChanges {
     private changes: any;
     private hint: any;
     private startTime: any;
-    constructor(changes = {}, hint = {}, startTime = Date.now()) {
+    constructor(changes = [], hint = {}, startTime = Date.now()) {
         this.changes = changes;
         this.hint = hint;
         this.startTime = startTime;
@@ -12,27 +12,22 @@ class CodeChanges {
     getChanges() {
         return this.changes;
     }
-    getChangesPayload() {
-        return {
-            ...this.changes,
-            startTime: this.startTime
-        };
+    getStartTime() {
+        return this.startTime;
     }
     getHint() {
         return this.hint;
     }
-    updateChanges(documentId: string, newText: string, date: number) {
-        const prev = this.changes[documentId] || [];
-
+    updateChanges(newText: string, date: number) {
         const newChange = {
             date,
-            text: newText
+            code: newText
         };
 
-        this.changes = {
+        this.changes = [
             ...this.changes,
-            [ documentId ]: Array.isArray(prev) ? [ ...prev, newChange ] : [ newChange ]
-        };
+            newChange
+        ];
     }
     updateHint(hint) {
         if(!this.hint || this.hint.id !== hint.id) {
