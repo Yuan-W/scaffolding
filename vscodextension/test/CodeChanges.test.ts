@@ -6,7 +6,7 @@ import CodeChanges from '../src/CodeChanges';
 
 suite('CodeChanges', () => {
     let codeChanges;
-    setup( () => {
+    setup(() => {
         codeChanges = new CodeChanges;
     });
 
@@ -22,19 +22,41 @@ suite('CodeChanges', () => {
 
         test('When called with documentId and newText and documentId is not in `changes` creates a new array of changes with element newText', () => {
             codeChanges.updateChanges('id', 'text');
-            expect(codeChanges.getChanges().id).to.deep.equal([ 'text' ]);
+            const updateObject = {
+                date: undefined,
+                text: 'text'
+            };
+            expect(codeChanges.getChanges().id).to.deep.equal([updateObject]);
         });
 
         test('When called with documentId and newText and documentId is in `changes` append to current array of changes', () => {
-            codeChanges = new CodeChanges({ id: [ 'text' ]});
-            codeChanges.updateChanges('id', 'newText');
-            expect(codeChanges.getChanges().id).to.deep.equal([ 'text', 'newText' ]);
+            const initialChanges = {
+                id: [
+                    {
+                        date: 1,
+                        text: 'text',
+                    }
+                ]
+            };
+            codeChanges = new CodeChanges(initialChanges);
+            codeChanges.updateChanges('id', 'newText', 2);
+            expect(codeChanges.getChanges().id).to.deep.equal([ ...initialChanges.id, { date: 2, text: 'newText' }]);
         });
 
         test('When called with documentId and newText, it does not mutate data under any other id', () => {
             const prevChanges = {
-                foo: [ 'bar' ],
-                baz: [ 'foobar' ]
+                foo: [
+                    {
+                        date: 1,
+                        text: 'bar'
+                    }
+                ],
+                baz: [
+                    {
+                        date: 2,
+                        text: 'foobar'
+                    }
+                ]
             };
             codeChanges = new CodeChanges(prevChanges);
             codeChanges.updateChanges('id', 'newText');
@@ -64,7 +86,7 @@ suite('CodeChanges', () => {
             expect(vscodeStub.window.showInformationMessage.called).to.equal(true);
         });
 
-        test('When called with a new hint, calls `showInformationMessage`', () => {
+        test('When called with a new hint (no hint set), calls `showInformationMessage`', () => {
             const vscodeStub = { window: { showInformationMessage: sinon.stub() } };
             const CodeChanges = proxyquire.noCallThru().load('../src/CodeChanges', {
                 'vscode': vscodeStub
