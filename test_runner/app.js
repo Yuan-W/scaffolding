@@ -21,7 +21,7 @@ app.use(express.bodyParser());
 
 app.all('*', function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'POST');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
 
     next();
@@ -29,13 +29,16 @@ app.all('*', function (req, res, next) {
 
 app.post('/test', bruteforce.prevent, function (req, res) {
 
-    const { language = 0, code = '', testCode = '' } = req.body;
+    const { language = 0, code, testCode } = req.body;
+    if(!code || !testCode) {
+        return res.status(400).send('Parameters code or testCode are not valid');
+    }
     const fullCode = code + '\n' + testCode;
 
     compile.run({
         language,
         code: fullCode,
-        stdin
+        stdin: undefined
     }, function (data, time, errors) {
         const results = extractTestResults(data);
         res.send({ results, errors, time });
@@ -45,3 +48,5 @@ app.post('/test', bruteforce.prevent, function (req, res) {
 
 console.log('Listening on port:', port)
 app.listen(port);
+
+export default app;

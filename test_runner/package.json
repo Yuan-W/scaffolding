@@ -19,12 +19,12 @@
     "express-brute": "*",
     "morgan": "^1.7.0"
   },
-  "author": "Osman Ali",
   "license": "MIT",
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
     "mocha-better-spec-reporter": "^3.1.0",
-    "node-dev": "^3.1.3"
+    "node-dev": "^3.1.3",
+    "supertest": "^3.0.0"
   }
 }
