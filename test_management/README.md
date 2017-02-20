@@ -2,6 +2,10 @@
 
 Manage tests for exercises.
 
+## Port
+
+Port: 5003
+
 ### RESTful Endpoints
 
 #### READ
