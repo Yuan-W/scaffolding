@@ -6,7 +6,7 @@ import * as compile from './compile';
 import extractTestResults from './extractTestResults';
 
 const app = express.createServer();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5004;
 
 const store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
 const bruteforce = new ExpressBrute(store, {
