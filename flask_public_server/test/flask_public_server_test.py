@@ -23,7 +23,6 @@ class PublicServerTestCase(unittest.TestCase):
 
     def test_incorrect_parameter(self):
         response = post(self.app, code, time_spent)
-        print response.data
         json_data = json.loads(response.data)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(json_data['message'], 'Invalid data!')
