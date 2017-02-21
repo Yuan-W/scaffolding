@@ -2,6 +2,16 @@
 
 [![Build Status](https://travis-ci.com/Yuan-W/scaffolding.svg?token=wCDdC3iNXfe4K35sqGoj&branch=master)](https://travis-ci.com/Yuan-W/scaffolding)
 
+# Services and Ports
+| Service | Port | Url
+--- | --- | ---
+HintsProvider | 5001 | N/A
+StatsAnalysis | 5005 | N/A
+StatsUpdater | 5002 | N/A
+TestManagement | 5003 | N/A
+TestRunner | 5004 | N/A
+
+
 ## Current Structure
 
 <center> ![sturcuture](https://www.dropbox.com/s/uagmfuy3o1vjf64/structure.pdf?raw=1) </center>
