@@ -20,9 +20,12 @@ class CodeChangeSender {
     }
     send(fetch = axios) {
         const changes = this.codeChanges.getChanges();
+        const startTime = this.codeChanges.getStartTime();
+        const { code = '' } = Array.isArray(changes) ? changes.slice(-1)[0] : {};
+        const timeSpent = Date.now() - startTime;
         clearInterval(this.sendInterval);
-        // this is an example of how to make a POST request to an address using axios
-        fetch.post(URL, { changes })
+
+        fetch.post(URL, { code, timeSpent })
             .then( ({ data }) => {
                 this.codeChanges.updateHint(data);
                 this.resetSendInterval(5000);

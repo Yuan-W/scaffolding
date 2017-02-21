@@ -1,6 +1,5 @@
 'use strict';
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+
 import * as vscode from 'vscode';
 
 import CodeChanges from './CodeChanges';
@@ -9,9 +8,8 @@ import CodeChangeSender from './CodeChangeSender';
 export function documentTextChangeHandler(codeChanges, sender) {
     return (e) => {
         const { document } = e;
-        const id = document.uri.toString();
         const text = document.getText();
-        codeChanges.updateChanges(id, text);
+        codeChanges.updateChanges(text);
         sender.resetSendInterval(5000);
     };
 }

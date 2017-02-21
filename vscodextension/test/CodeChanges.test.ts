@@ -6,7 +6,7 @@ import CodeChanges from '../src/CodeChanges';
 
 suite('CodeChanges', () => {
     let codeChanges;
-    setup( () => {
+    setup(() => {
         codeChanges = new CodeChanges;
     });
 
@@ -15,31 +15,30 @@ suite('CodeChanges', () => {
     });
 
     test('When CodeChanges is instantiated, it sets `changes` to {}', () => {
-        expect(codeChanges.getChanges()).to.deep.equal({});
+        expect(codeChanges.getChanges()).to.deep.equal([]);
     });
 
     suite('#updateChanges', () => {
 
         test('When called with documentId and newText and documentId is not in `changes` creates a new array of changes with element newText', () => {
-            codeChanges.updateChanges('id', 'text');
-            expect(codeChanges.getChanges().id).to.deep.equal([ 'text' ]);
+            codeChanges.updateChanges('text');
+            const updateObject = {
+                date: undefined,
+                code: 'text'
+            };
+            expect(codeChanges.getChanges()).to.deep.equal([ updateObject ]);
         });
 
         test('When called with documentId and newText and documentId is in `changes` append to current array of changes', () => {
-            codeChanges = new CodeChanges({ id: [ 'text' ]});
-            codeChanges.updateChanges('id', 'newText');
-            expect(codeChanges.getChanges().id).to.deep.equal([ 'text', 'newText' ]);
-        });
-
-        test('When called with documentId and newText, it does not mutate data under any other id', () => {
-            const prevChanges = {
-                foo: [ 'bar' ],
-                baz: [ 'foobar' ]
-            };
-            codeChanges = new CodeChanges(prevChanges);
-            codeChanges.updateChanges('id', 'newText');
-            const { id, ...rest } = codeChanges.getChanges();
-            expect(rest).to.deep.equal(prevChanges);
+            const initialChanges = [
+                {
+                    date: 1,
+                    code: 'text',
+                }
+            ];
+            codeChanges = new CodeChanges(initialChanges);
+            codeChanges.updateChanges('newText', 2);
+            expect(codeChanges.getChanges()).to.deep.equal([...initialChanges, { date: 2, code: 'newText' }]);
         });
 
     });
@@ -64,7 +63,7 @@ suite('CodeChanges', () => {
             expect(vscodeStub.window.showInformationMessage.called).to.equal(true);
         });
 
-        test('When called with a new hint, calls `showInformationMessage`', () => {
+        test('When called with a new hint (no hint set), calls `showInformationMessage`', () => {
             const vscodeStub = { window: { showInformationMessage: sinon.stub() } };
             const CodeChanges = proxyquire.noCallThru().load('../src/CodeChanges', {
                 'vscode': vscodeStub

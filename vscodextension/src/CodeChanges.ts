@@ -3,25 +3,34 @@ import { window, MessageItem } from 'vscode';
 class CodeChanges {
     private changes: any;
     private hint: any;
-    constructor(changes = {}, hint = {}) {
-        this.changes = changes || {};
-        this.hint = hint || {};
+    private startTime: any;
+    constructor(changes = [], hint = {}, startTime = Date.now()) {
+        this.changes = changes;
+        this.hint = hint;
+        this.startTime = startTime;
     }
     getChanges() {
         return this.changes;
     }
+    getStartTime() {
+        return this.startTime;
+    }
     getHint() {
         return this.hint;
     }
-    updateChanges(documentId: string, newText: string) {
-        const prev = this.changes[documentId];
-        this.changes = {
-            ...this.changes,
-            [ documentId ]: Array.isArray(prev) ? [ ...prev, newText ] : [ newText ]
+    updateChanges(newText: string, date: number) {
+        const newChange = {
+            date,
+            code: newText
         };
+
+        this.changes = [
+            ...this.changes,
+            newChange
+        ];
     }
     updateHint(hint) {
-        if(this.hint.id !== hint.id) {
+        if(!this.hint || this.hint.id !== hint.id) {
             window.showInformationMessage('Try XYZ');
         }
         this.hint = hint;
