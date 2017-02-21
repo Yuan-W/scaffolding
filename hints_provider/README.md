@@ -2,6 +2,10 @@
 
 Return hints based on the input.
 
+### Port
+
+Port: 5001
+
 ### RESTful APIs
 
 `/hints` #POST
