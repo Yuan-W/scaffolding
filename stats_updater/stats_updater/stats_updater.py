@@ -27,7 +27,6 @@ class StatsUpdater(Resource):
     data = dict()
     data['exercise_id'] = args['exercise_id']
     data['student_id'] = args['student_id']
-    data['student_id'] = args['student_id']
     data['time_spent'] = args['time_spent']
     data['code'] = args['code']
     if sys._called_from_test:
