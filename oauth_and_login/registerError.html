@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+<div></div>
+<script>
+function getParameterByName(name, url) {
+    if (!url) {
+      url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+var result = getParameterByName('error');
+if (result == "passMatch") {
+	document.getElementsByTagName('div')[0].innerHTML = "Passwords don't match. Redirecting back to the Registration Form in 5 seconds.";
+} else if (result == "user") {
+	document.getElementsByTagName('div')[0].innerHTML = "Username already in use. Redirecting back to the Registration Form in 5 seconds.";
+} else if (result == "instrMatch") {
+	document.getElementsByTagName('div')[0].innerHTML = "Passphrases don't match. Redirecting back to the Registration Form in 5 seconds.";
+} else if (result == "instr") {
+	document.getElementsByTagName('div')[0].innerHTML = "Instructor doesn't exist. Redirecting back to the Registration Form in 5 seconds.";
+} else if (result == "none") {
+	document.getElementsByTagName('div')[0].innerHTML = "Registered!. Redirecting back to the Login Form in 5 seconds.";
+} else if (result == "empty") {
+    document.getElementsByTagName('div')[0].innerHTML = "Username, Password or Instructor empty. Redirecting back to the Registration Form in 5 seconds.";
+}
+</script>
+<meta http-equiv="refresh" content="3;url=https://ubuntu.jedge.uk/register.html" />
+</html>
