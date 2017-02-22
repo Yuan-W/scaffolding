@@ -13,10 +13,10 @@ app.config['MYSQL_DATABASE_DB'] = 'oauth'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 
-portA = 5000 #remote stats / hints server port
-portB = 5001 #remote stats / hints server port
-serverA = 'http://10.1.1.6:{:d}/stats/'.format(portA)
-serverB = 'http://10.1.1.6:{:d}/hints'.format(portB)
+port_stats = 5005
+port_hints = 5001
+server_stats = 'http://localhost:{:d}/stats/'.format(port_stats)
+server_hints = 'http://localhost:{:d}/hints'.format(port_hints)
 
 def fetch_user_id(token):
     """for a given access_token returns a string user_id
@@ -72,9 +72,9 @@ def forward_stats():
     """route /stats response, looks for access_token in a header, queries
     the db for it, and if finds an user_id, checks token expiration.
     then finds instructor_id using user_id in db, forwards it
-    through a GET to serverA's /stats/instructor_id, accepts its reply
+    through a GET to server_stats's /stats/instructor_id, accepts its reply
     and serves it back as initial request's response"""
-    global serverA
+    global server_stats
     if 'access_token' not in request.headers:
         return Response("No access_token in GET header\n", status='401')
     access_token = request.headers['access_token'].encode('utf-8')
@@ -86,7 +86,7 @@ def forward_stats():
     instructor_id = fetch_instructor_id(user_id) #query db
     if not instructor_id:
         return Response("Inconsistent DB state, access_token doesn't provide a valid user\n", status='401')
-    req = get(serverA + str(instructor_id)) #forward GET
+    req = get(server_stats + str(instructor_id)) #forward GET
     if app.debug:
         print(req.text)
     if 'Content-Type' in req.headers and \
@@ -102,9 +102,9 @@ def forward_hints():
     """route /hints response, looks for access_token in a header, and a json
     POST query. queries the db for access_token, and if finds an user_id,
     checks token expiration. then queries student_id/instructor_id,
-    and if found it then forwards the POST to serverB's /hints, accepts its reply
+    and if found it then forwards the POST to server_hints's /hints, accepts its reply
     and serves it back as initial request's response"""
-    global serverB
+    global server_hints
     if 'access_token' not in request.headers:
         return Response("No access_token in POST header\n", status='401')
     if not 'Content-Type' in request.headers:
@@ -125,7 +125,7 @@ def forward_hints():
     post_data['student_id'] = student_id
     post_data['instructor_id'] = instructor_id
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    req = post(serverB, json=post_data, headers=headers) #forward POST
+    req = post(server_hints, json=post_data, headers=headers) #forward POST
     if 'Content-Type' in req.headers and \
         req.headers['Content-Type'] == 'application/json': #check reply
         resp = Response(dumps(req.json()), mimetype='application/json')
