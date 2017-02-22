@@ -1,28 +1,24 @@
 import sys
 import json
-from flask import Flask, request, session, g, redirect, url_for, abort, flash
-from flask_restful import reqparse, Api, Resource, marshal_with, fields
-import couchdb.design
-from couchdb import Server
+from flask import Flask, g
 import flaskext.couchdb
-from flaskext.couchdb import ViewDefinition
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 
 #create the view for CouchDB
-docs_by_exercise = ViewDefinition('docs','exercise_id','''\
+docs_by_exercise = flaskext.couchdb.ViewDefinition('docs','exercise_id','''\
     function(doc){
         emit(doc.exercise_id,doc)
     }
   ''')
 
 test_url = 'http://localhost:5984'
-db_url = 'http://admin:couchdbpass@51.140.40.130:5984'
+db_url = 'http://admin:ANfCd8PDW8QhNAWd@10.0.0.6:5984'
 
 app.config.update(
   DEBUG = True,
-  COUCHDB_SERVER = db_url,
+  COUCHDB_SERVER = test_url,
   COUCHDB_DATABASE = 'progress'
 )
 manager = flaskext.couchdb.CouchDBManager()

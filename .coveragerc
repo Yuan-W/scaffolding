@@ -3,3 +3,5 @@ omit = */__init__.py
 source = hints_provider/
           flask_public_server/
           stats_updater/
+          test_management/
+          stats_analyser/
