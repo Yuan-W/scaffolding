@@ -7,18 +7,17 @@ use Symfony\Component\HttpFoundation\Response;
 function dbConnect() {
     $MYSQL_URL = '127.0.0.1';
     $MYSQL_USER = 'root';
-    // $MYSQL_PASSWORD = '';
+    $MYSQL_PASSWORD = '';
     $MYSQL_PASSWORD = 'gs02Scaff!';
     $MYSQL_DATABASE = 'oauth';
     
     return new mysqli($MYSQL_URL, $MYSQL_USER, $MYSQL_PASSWORD, $MYSQL_DATABASE);
 }
 
-$app = new Silex\Application();
-
 function createoAuthServer() {
     $dsn      = 'mysql:dbname=oauth;host=127.0.0.1';
     $username = 'root';
+    $password = '';
     $password = 'gs02Scaff!';
     $storage = new OAuth2\Storage\Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
     $oauthServer = new OAuth2\Server($storage);
@@ -27,25 +26,37 @@ function createoAuthServer() {
     return $oauthServer;
 }
 
+$app = new Silex\Application();
+
+$app->register(new Silex\Provider\SessionServiceProvider());
+
+$app->register(new Silex\Provider\TwigServiceProvider(), array(
+    'twig.path' => __DIR__.'/views',
+));
+
+$app->before(function () use ($app) {
+    $app['twig']->addGlobal('layout', null);
+    $app['twig']->addGlobal('layout', $app['twig']->loadTemplate('layout.twig'));
+});
+
 $app['oauthServer'] = createoAuthServer();
 
 $app['debug'] = true;
 
-$app->register(new Silex\Provider\SessionServiceProvider());
-
 $app->get('/', function() use ($app) {
-    return $app->sendFile('./views/index.html');
+    return $app['twig']->render('login.twig');
 });
 
 $app->get('/login', function() use ($app) {
-    return $app->sendFile('./views/index.html');
+    return $app['twig']->render('login.twig');
 });
 
 $app->post('/login', function(Request $request) use ($app) {
     $user = $request->get('user');
     $password = $request->get('pass');
     if(empty($user) || empty($password)) {
-        return $app->redirect('/login/error?error=empty');
+        $app['session']->getFlashBag()->set('error', 'Username or Password empty.');
+        return $app->redirect('/login');
     }
     $mysqli = dbConnect();
     $passcode = hash('sha256', $password);
@@ -58,44 +69,29 @@ $app->post('/login', function(Request $request) use ($app) {
 
     if($count == 1) {
         $app['session']->set('login_user', $user);
-        return $app->redirect('/login/success');
-    } else {
-        return $app->redirect('/login/error?error=fail');
-    }
-});
-
-$app->get('/login/success', function() use ($app) {
-    if($app['session']->has('login_user')) {
         return $app->redirect('/authorize?response_type=code&client_id=testclient&state=xyz');
     } else {
-        return $app->redirect('/');
+        $app['session']->getFlashBag()->set('error', 'Username or Password incorrect.');
+        return $app->redirect('/login');
     }
-});
-
-$app->get('/login/error', function(Request $request) use ($app) {
-    return file_get_contents('./views/loginError.html');
 });
 
 $app->get('/authorize', function(Request $request) use ($app) {
     if(!$app['session']->has('login_user')) {
+        $app['session']->getFlashBag()->set('error', 'Not logged in.');
         return $app->redirect('/');
     }
 
+    $response_type = $request->get('response_type');
+    $client_id = $request->get('client_id');
+    $state = $request->get('state');
 
-    return '
-    <form method="post" action="/authorize">
-        <label>Do You Authorize TestClient?</label><br />
-        <input type="hidden" name="response_type" value="'. $request->get('response_type') . '">
-        <input type="hidden" name="client_id" value="'. $request->get('client_id') . '">
-        <input type="hidden" name="state" value="'. $request->get('state') . '">
-        <input type="submit" name="authorized" value="yes">
-        <input type="submit" name="authorized" value="no (will log you out)">
-    </form>
-    ';
+    return $app['twig']->render('authorize.twig', compact('response_type', 'client_id', 'state'));
 });
 
 $app->post('/authorize', function(Request $request) use ($app) {
     if(!$app['session']->has('login_user')) {
+        $app['session']->getFlashBag()->set('error', 'Not logged in.');
         return $app->redirect('/');
     }
     $response_type = $request->get('response_type');
@@ -112,12 +108,14 @@ $app->post('/authorize', function(Request $request) use ($app) {
     $isAuthorized = $request->get('authorized') === 'yes';
     if(!$isAuthorized) {
         $app['session']->clear();
+        $app['session']->getFlashBag()->set('error', 'Not authorized.');
         return $app->redirect('/');
     }
 
     $app['oauthServer']->handleAuthorizeRequest($oauthRequest, $oauthResponse, $isAuthorized, $userId);
     $code = substr($oauthResponse->getHttpHeader('Location'), strpos($oauthResponse->getHttpHeader('Location'), 'code=')+5, 40);
-    return 'SUCCESS! Authorization Code: ' . $code;
+
+    return $app['twig']->render('authorizeSuccess.twig', compact('code'));
 });
 
 $app->get('/token', function(Request $request) use ($app) {
@@ -125,7 +123,7 @@ $app->get('/token', function(Request $request) use ($app) {
 });
 
 $app->get('/register', function() use ($app) {
-    return $app->sendFile('./views/register.html');
+    return $app['twig']->render('register.twig');
 });
 
 $app->post('/register', function(Request $request) use ($app) {
@@ -138,17 +136,20 @@ $app->post('/register', function(Request $request) use ($app) {
     $isAnyInputEmpty = empty($user) || empty($password) || empty($instructor);
 
     if($isAnyInputEmpty) {
-        return $app->redirect('/register/error?error=empty');
+        $app['session']->getFlashBag()->set('error', 'Username, Password or Instructor empty.');
+        return $app->redirect('/register');
     }
 
     $passwordsMatch = $password === $password_confirmation;
     if(!$passwordsMatch) {
-        return $app->redirect('/register/error?error=passMatch');
+        $app['session']->getFlashBag()->set('error', 'Passwords don\'t match.');
+        return $app->redirect('/register');
     }
 
     $instructorMatch = $instructor === $instructor_confirmation;
     if(!$instructorMatch) {
-        return $app->redirect('/register/error?error=instrMatch');
+        $app['session']->getFlashBag()->set('error', 'Passphrases don\'t match.');
+        return $app->redirect('/register');
     }
 
     $mysqli = dbConnect();
@@ -162,7 +163,8 @@ $app->post('/register', function(Request $request) use ($app) {
     
     $userExists = $userCount != 0;
     if($userExists) {
-        return $app->redirect('/register/error?error=user');
+        $app['session']->getFlashBag()->set('error', 'Username already in use.');
+        return $app->redirect('/register');
     }
 
     $passphrase = hash('sha256', $instructor);
@@ -175,7 +177,8 @@ $app->post('/register', function(Request $request) use ($app) {
 
     $instructorExists = $instructorCount != 0;
     if(!$instructorExists) {
-        return $app->redirect('/register/error?error=instr');
+        $app['session']->getFlashBag()->set('error', 'Instructor doesn\'t exist.');
+        return $app->redirect('/register');
     }
     
     $stmt->bind_result($instructorUsername);
@@ -189,15 +192,7 @@ $app->post('/register', function(Request $request) use ($app) {
     $stmt->execute();
     $stmt->close();
     
-    return $app->redirect('/register/success');
-});
-
-$app->get('/register/success', function(Request $request) use ($app) {
-    return $app->sendFile('./views/registerSuccess.html');
-});
-
-$app->get('/register/error', function(Request $request) use ($app) {
-    return $app->sendFile('./views/registerError.html');
+    return $app['twig']->render('registerSuccess.twig');
 });
 
 $app->run();
