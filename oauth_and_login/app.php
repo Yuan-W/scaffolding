@@ -7,8 +7,8 @@ use Symfony\Component\HttpFoundation\Response;
 function dbConnect() {
     $MYSQL_URL = '127.0.0.1';
     $MYSQL_USER = 'root';
-    $MYSQL_PASSWORD = '';
-    // $MYSQL_PASSWORD = 'gs02Scaff!';
+    // $MYSQL_PASSWORD = '';
+    $MYSQL_PASSWORD = 'gs02Scaff!';
     $MYSQL_DATABASE = 'oauth';
     
     return new mysqli($MYSQL_URL, $MYSQL_USER, $MYSQL_PASSWORD, $MYSQL_DATABASE);
@@ -19,7 +19,7 @@ $app = new Silex\Application();
 function createoAuthServer() {
     $dsn      = 'mysql:dbname=oauth;host=127.0.0.1';
     $username = 'root';
-    $password = '';
+    $password = 'gs02Scaff!';
     $storage = new OAuth2\Storage\Pdo(array('dsn' => $dsn, 'username' => $username, 'password' => $password));
     $oauthServer = new OAuth2\Server($storage);
     $oauthServer->addGrantType(new OAuth2\GrantType\ClientCredentials($storage));
@@ -32,10 +32,6 @@ $app['oauthServer'] = createoAuthServer();
 $app['debug'] = true;
 
 $app->register(new Silex\Provider\SessionServiceProvider());
-
-$app->get('/style.css', function() use ($app) {
-    return $app->sendFile('./style.css', 200, array('Content-Type' => 'text/css'));
-});
 
 $app->get('/', function() use ($app) {
     return $app->sendFile('./views/index.html');
@@ -124,8 +120,8 @@ $app->post('/authorize', function(Request $request) use ($app) {
     return 'SUCCESS! Authorization Code: ' . $code;
 });
 
-$app->get('/token', function(Request $request) use ($app, $oauthServer) {
-    $oauthServer->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
+$app->get('/token', function(Request $request) use ($app) {
+    $app['oauthServer']->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
 });
 
 $app->get('/register', function() use ($app) {
