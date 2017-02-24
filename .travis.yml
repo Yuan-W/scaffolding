@@ -5,10 +5,15 @@ os:
 
 services:
   - couchdb
+  - mysql
 
 python:
   - "2.6"
   - "2.7"
+
+before_install:
+  - mysql -e 'CREATE DATABASE oauth;'
+  - curl -X PUT localhost:5984/progress
 
 install:
   - pip install -r hints_provider/requirements.txt
@@ -19,8 +24,8 @@ install:
   - pip install coverage
 
 before_script:
-  - curl -X PUT localhost:5984/progress
+  - FLASK_CONFIGURATION='testing' FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
   
 script: 
-  - coverage run -m pytest -v
+  - FLASK_CONFIGURATION='testing' coverage run -m pytest -v
   - coverage report
