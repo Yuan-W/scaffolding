@@ -7,7 +7,6 @@ class PublicTestCase(unittest.TestCase):
     def setUp(self):
         self.app = flask_public_server.app.test_client()
     
-    
 #    def test_stats_using_token(self):
 #        headers = {'access_token': '6f05ad622a3d32a5a81aee5d73a5826adb8cbf64'}
 #        rv = self.app.get('/stats', headers=headers)
