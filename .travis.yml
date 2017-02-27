@@ -24,6 +24,7 @@ install:
   - pip install coverage
 
 before_script:
+  - touch flask_public_server/config.cfg
   - FLASK_CONFIGURATION='testing' FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
   
 script: 
