@@ -5,7 +5,7 @@ import unittest
 
 student_id = 1
 exercise_id = 2
-time_spent = 3
+time_spent = 300
 code = 'test code'
 
 

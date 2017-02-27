@@ -21,8 +21,14 @@ parser.add_argument('code', location='json', required=True, help='code must exis
 def get_test_result(code):
     return 'Failed'
 
+def get_average_time(exercise_id):
+    return 10
+
 def get_hint(exercise_id, time_spent, test_result):
-    return 'Dummy Hints'
+    average_time_spent = get_average_time(exercise_id)
+    if time_spent > average_time_spent and test_result is 'Failed':
+        return 'Dummy Hints'
+    return None
 
 class Hint(object):
     def __init__(self, student_id, exercise_id, hints):
