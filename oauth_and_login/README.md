@@ -21,9 +21,17 @@ Create an oauth client with id 'testclient' and an instructor with name and pass
 ```sql
 INSERT INTO oauth_clients (client_id, client_secret, redirect_uri) VALUES ("testclient", "testpass", "http://fake/");
 INSERT INTO instructors (instructor, pass, passphrase) VALUES ("test", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
+
 ```
 
+Copy `.env.example` to `.env` and modify with the correct MySQL local login credentials.
 
 Run `composer install`.
 
 Use `php -S localhost:5000 app.php` to run the server locally on `http://localhost:5000`.
+
+## Testing
+
+You need `phpunit` installed.
+
+Run `phpunit`.
