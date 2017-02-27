@@ -1,0 +1,12 @@
+{
+    "require": {
+        "bshaffer/oauth2-server-php": "~1.8",
+        "silex/silex": "~2.0",
+        "twig/twig": "^2.1",
+        "vlucas/phpdotenv": "^2.4"
+    },
+    "require-dev": {
+        "symfony/browser-kit": "^3.2",
+        "symfony/css-selector": "^3.2"
+    }
+}
