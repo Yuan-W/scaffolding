@@ -8,8 +8,8 @@
 HintsProvider | 5001 | N/A
 StatsAnalysis | 5005 | N/A
 StatsUpdater | 5002 | N/A
-TestManagement | 5003 | N/A
-TestRunner | 5004 | N/A
+TestManagement | 5003 | 10.0.1.7
+TestRunner | 5004 | 10.0.1.7
 
 
 ## Current Structure
