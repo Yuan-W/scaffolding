@@ -86,7 +86,7 @@ $app->post('/authorize', function (Request $request) use ($app) {
     if (!$app['oauthServer']->validateAuthorizeRequest($oauthRequest, $oauthResponse)) {
         $oauthResponse->send();
     }
-    
+
     $userId = $app['session']->get('login_user');
     $isAuthorized = $request->get('authorized') === 'yes';
     if (!$isAuthorized) {
@@ -101,8 +101,9 @@ $app->post('/authorize', function (Request $request) use ($app) {
     return $app['twig']->render('authorizeSuccess.twig', compact('code'));
 });
 
-$app->get('/token', function (Request $request) use ($app) {
+$app->post('/token', function (Request $request) use ($app) {
     $app['oauthServer']->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
+    return('');
 });
 
 $app->get('/register', function () use ($app) {
@@ -143,7 +144,7 @@ $app->post('/register', function (Request $request) use ($app) {
     $stmt->store_result();
     $userCount = $stmt->num_rows;
     $stmt->close();
-    
+
     $userExists = $userCount != 0;
     if ($userExists) {
         $app['session']->getFlashBag()->set('error', 'Username already in use.');
@@ -163,7 +164,7 @@ $app->post('/register', function (Request $request) use ($app) {
         $app['session']->getFlashBag()->set('error', 'Instructor doesn\'t exist.');
         return $app->redirect('/register');
     }
-    
+
     $stmt->bind_result($instructorUsername);
     $stmt->fetch();
     $stmt->close();
@@ -174,7 +175,7 @@ $app->post('/register', function (Request $request) use ($app) {
     $stmt->bind_param("sss", $user, $passcode, $instructorUsername);
     $stmt->execute();
     $stmt->close();
-    
+
     return $app['twig']->render('registerSuccess.twig');
 });
 
