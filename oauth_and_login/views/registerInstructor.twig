@@ -1,0 +1,33 @@
+{% extends layout %}
+{% block content %}
+	<div id="Sign-In">
+		<fieldset style="width:90%">
+			<legend>Register</legend>
+			<form method="POST" action="instructor">
+				<div>
+					<label>Username</label>
+					<input type="text" name="user" size="50">
+				</div>
+				<div>
+					<label>Password</label>
+					<input type="password" name="pass" size="50">
+				</div>
+				<div>
+					<label>Re-type Password</label>
+					<input type="password" name="pass2" size="50">
+				</div>
+				<div>
+					<label>Create Instructor Passphrase</label>
+					<input type="password" name="instr" size="50">
+				</div>
+				<div>
+					<label>Create Re-type Instructor Passphrase</label>
+					<input type="password" name="instr2" size="50">
+				</div>
+				<br>
+				<input id="button" type="submit" name="submit" value="Register">
+			</form>
+		</fieldset>
+		Have an account? <a href="/">Log-in</a>
+	</div>
+{% endblock %}

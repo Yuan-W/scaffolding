@@ -3,19 +3,14 @@
 	<div id="Sign-In">
 		<fieldset style="width:90%">
 			<legend>Log-in</legend>
-			<form method="POST" action="login">
+			<form method="POST" action="instructor">
 				<div>
-					<label>Username</label>
-					<input type="text" name="user" size="50">
-				</div>
-				<div>
-					<label>Password</label>
+					<label>Master Instructor Passphrase</label>
 					<input type="password" name="pass" size="50">
 				</div>
 				<br>
 				<input id="button" type="submit" name="submit" value="Log-in">
 			</form>
 		</fieldset>
-		No account? <a href="/register">Register</a><br>
-		No instructor account? <a href="/login/instructor">Register</a>
+	</div>
 {% endblock %}

@@ -59,6 +59,34 @@ $app->post('/login', function (Request $request) use ($app) {
     }
 });
 
+$app->get('/login/instructor', function () use ($app) {
+    return $app['twig']->render('loginInstructor.twig');
+});
+
+$app->post('/login/instructor', function (Request $request) use ($app) {
+    $passphrase = $request->get('pass');
+    if (empty($passphrase)) {
+        $app['session']->getFlashBag()->set('error', 'Password empty.');
+        return $app->redirect('/login/instructor');
+    }
+    $mysqli = Connections::dbConnect();
+    $passcode = hash('sha256', $passphrase);
+    $stmt = $mysqli->prepare("SELECT * FROM instructorMaster where passphrase=?");
+    $stmt->bind_param("s", $passcode);
+    $stmt->execute();
+    $stmt->store_result();
+    $count = $stmt->num_rows;
+    $stmt->close();
+
+    if ($count == 1) {
+        $app['session']->set('login_instructor', $passphrase);
+        return $app->redirect('/register/instructor');
+    } else {
+        $app['session']->getFlashBag()->set('error', 'Password incorrect.');
+        return $app->redirect('/login/instructor');
+    }
+});
+
 $app->get('/authorize', function (Request $request) use ($app) {
     if (!$app['session']->has('login_user')) {
         $app['session']->getFlashBag()->set('error', 'Not logged in.');
@@ -104,6 +132,67 @@ $app->post('/authorize', function (Request $request) use ($app) {
 $app->post('/token', function (Request $request) use ($app) {
     $app['oauthServer']->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
     return('');
+});
+
+$app->get('/register/instructor', function () use ($app) {
+    if (!$app['session']->has('login_instructor')) {
+        $app['session']->getFlashBag()->set('error', 'Not logged in.');
+        return $app->redirect('/login/instructor');
+    }
+    return $app['twig']->render('registerInstructor.twig');
+});
+
+$app->post('/register/instructor', function (Request $request) use ($app) {
+    $user = $request->get('user');
+    $password = $request->get('pass');
+    $password_confirmation = $request->get('pass2');
+    $instructor = $request->get('instr');
+    $instructor_confirmation = $request->get('instr2');
+
+    $isAnyInputEmpty = empty($user) || empty($password) || empty($instructor);
+
+    if ($isAnyInputEmpty) {
+        $app['session']->getFlashBag()->set('error', 'Username, Password or Instructor empty.');
+        return $app->redirect('/register/instructor');
+    }
+
+    $passwordsMatch = $password === $password_confirmation;
+    if (!$passwordsMatch) {
+        $app['session']->getFlashBag()->set('error', 'Passwords don\'t match.');
+        return $app->redirect('/register/instructor');
+    }
+
+    $instructorMatch = $instructor === $instructor_confirmation;
+    if (!$instructorMatch) {
+        $app['session']->getFlashBag()->set('error', 'Passphrases don\'t match.');
+        return $app->redirect('/register/instructor');
+    }
+
+    $mysqli = Connections::dbConnect();
+
+    $stmt = $mysqli->prepare("SELECT * FROM instructors where username=?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $stmt->store_result();
+    $userCount = $stmt->num_rows;
+    $stmt->close();
+
+    $userExists = $userCount != 0;
+    if ($userExists) {
+        $app['session']->getFlashBag()->set('error', 'Username already in use.');
+        return $app->redirect('/register/instructor');
+    }
+
+    $passphrase = hash('sha256', $instructor);
+
+    $passcode = hash('sha256', $password);
+
+    $stmt = $mysqli->prepare("INSERT INTO instructors (username, pass, passphrase) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $user, $passcode, $passphrase);
+    $stmt->execute();
+    $stmt->close();
+
+    return $app['twig']->render('registerSuccess.twig');
 });
 
 $app->get('/register', function () use ($app) {
