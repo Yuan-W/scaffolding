@@ -5,33 +5,36 @@
 # Services and Ports
 | Service | Port | Url
 --- | --- | ---
+PublicServer | 5000 | 51.140.39.195
 HintsProvider | 5001 | N/A
-StatsAnalysis | 5005 | N/A
+StatsAnalyser | 5005 | N/A
 StatsUpdater | 5002 | N/A
 TestManagement | 5003 | 10.0.1.7
 TestRunner | 5004 | 10.0.1.7
 
 
-## Current Structure
 
-<center> ![sturcuture](https://www.dropbox.com/s/uagmfuy3o1vjf64/structure.pdf?raw=1) </center>
 
-[Link to the diagram](https://www.lucidchart.com/invitations/accept/56fab060-db54-4f7a-aeba-22e1647b0796)
+# RESTful APIs
+##PublicServer
 
-### Legend
+###Get all stats belongs to an instructor
 
-| Edge Id | Method | Fields
---- | --- | ---
-1 | GET | Nil
-2 | GET | Nil
-3 | Response | {time\_spent, average\_time\_spent}
-4 | POST | {user\_code, time\_spent}
-5 | POST | {user\_code, time\_spent}
-6 | POST | {user\_code}
-7 | POST | {time\_spent}
-8 | Database Update | {time\_spent}
-9 | Response | {test\_result}
-10 | Response | {hints}
-11 | Database Query | {time\_spent}
-12 | Response | {time\_spent, average\_time\_spent}
-13 | Response | {hints}
+| Title | Content |
+--- | ---
+URL | /stats
+Method Allowed | GET
+Headers Required | access_token=\<token>,<br> Content-Type=application/json
+Successful Response | Code: HTTP 200 OK, <br>Content: {<br>time\_spent : [integer], <br>student\_id : [integer], <br>average\_time\_spent : [integer] <br>}
+Error Responses | HTTP 401 Unauthorized, <br> HTTP 404 Not Found
+
+##HintsProvider
+
+##StatsAnalyser
+
+##StatsUpdater
+
+##TestManagement
+
+##TestRunner
+
