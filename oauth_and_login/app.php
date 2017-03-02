@@ -145,7 +145,7 @@ $app->post('/authorize', function (Request $request) use ($app) {
     }
 
     $userId = $app['session']->get('login_user');
-    $isAuthorized = $request->get('authorized') === 'yes';
+    $isAuthorized = $request->get('authorized') === 'Yes';
     if (!$isAuthorized) {
         $app['session']->clear();
         $app['session']->getFlashBag()->set('error', 'Not authorized.');
