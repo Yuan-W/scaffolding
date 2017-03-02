@@ -30,6 +30,35 @@ $app->get('/', function () use ($app) {
     return $app['twig']->render('login.twig');
 });
 
+$app->get('/login/instructor', function () use ($app) {
+    return $app['twig']->render('loginInstructor.twig');
+});
+
+$app->post('/login/instructor', function (Request $request) use ($app) {
+    $user = $request->get('user');
+    $password = $request->get('pass');
+    if (empty($user) || empty($password)) {
+        $app['session']->getFlashBag()->set('error', 'Username or Password empty.');
+        return $app->redirect('/login');
+    }
+    $mysqli = Connections::dbConnect();
+    $passcode = hash('sha256', $password);
+    $stmt = $mysqli->prepare("SELECT * FROM instructors where username=? AND pass=?");
+    $stmt->bind_param("ss", $user, $passcode);
+    $stmt->execute();
+    $stmt->store_result();
+    $count = $stmt->num_rows;
+    $stmt->close();
+
+    if ($count == 1) {
+        $app['session']->set('login_user', $user);
+        return $app->redirect('/authorize?response_type=code&client_id=testclient&state=xyz');
+    } else {
+        $app['session']->getFlashBag()->set('error', 'Username or Password incorrect.');
+        return $app->redirect('/login/instructor');
+    }
+});
+
 $app->get('/login', function () use ($app) {
     return $app['twig']->render('login.twig');
 });
@@ -59,18 +88,18 @@ $app->post('/login', function (Request $request) use ($app) {
     }
 });
 
-$app->get('/login/instructor', function () use ($app) {
-    return $app['twig']->render('loginInstructor.twig');
+$app->get('/register/instructor/passphrase', function () use ($app) {
+    return $app['twig']->render('registerInstr.twig');
 });
 
-$app->post('/login/instructor', function (Request $request) use ($app) {
-    $passphrase = $request->get('pass');
-    if (empty($passphrase)) {
+$app->post('/register/instructor/passphrase', function (Request $request) use ($app) {
+    $password = $request->get('pass');
+    if (empty($password)) {
         $app['session']->getFlashBag()->set('error', 'Password empty.');
-        return $app->redirect('/login/instructor');
+        return $app->redirect('/register/instructor/passphrase');
     }
     $mysqli = Connections::dbConnect();
-    $passcode = hash('sha256', $passphrase);
+    $passcode = hash('sha256', $password);
     $stmt = $mysqli->prepare("SELECT * FROM instructorMaster where passphrase=?");
     $stmt->bind_param("s", $passcode);
     $stmt->execute();
@@ -79,11 +108,11 @@ $app->post('/login/instructor', function (Request $request) use ($app) {
     $stmt->close();
 
     if ($count == 1) {
-        $app['session']->set('login_instructor', $passphrase);
+        $app['session']->set('login_instructor', $passcode);
         return $app->redirect('/register/instructor');
     } else {
         $app['session']->getFlashBag()->set('error', 'Password incorrect.');
-        return $app->redirect('/login/instructor');
+        return $app->redirect('/register/instructor/passphrase');
     }
 });
 
@@ -137,7 +166,7 @@ $app->post('/token', function (Request $request) use ($app) {
 $app->get('/register/instructor', function () use ($app) {
     if (!$app['session']->has('login_instructor')) {
         $app['session']->getFlashBag()->set('error', 'Not logged in.');
-        return $app->redirect('/login/instructor');
+        return $app->redirect('/register/instructor/passphrase');
     }
     return $app['twig']->render('registerInstructor.twig');
 });
@@ -170,6 +199,19 @@ $app->post('/register/instructor', function (Request $request) use ($app) {
 
     $mysqli = Connections::dbConnect();
 
+    $stmt = $mysqli->prepare("SELECT * FROM users where username=?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $stmt->store_result();
+    $userCount = $stmt->num_rows;
+    $stmt->close();
+
+    $userExists = $userCount != 0;
+    if ($userExists) {
+        $app['session']->getFlashBag()->set('error', 'Username already in use.');
+        return $app->redirect('/register/instructor');
+    }
+
     $stmt = $mysqli->prepare("SELECT * FROM instructors where username=?");
     $stmt->bind_param("s", $user);
     $stmt->execute();
@@ -184,6 +226,19 @@ $app->post('/register/instructor', function (Request $request) use ($app) {
     }
 
     $passphrase = hash('sha256', $instructor);
+
+    $stmt = $mysqli->prepare("SELECT * FROM instructors where passphrase=?");
+    $stmt->bind_param("s", $passphrase);
+    $stmt->execute();
+    $stmt->store_result();
+    $instrCount = $stmt->num_rows;
+    $stmt->close();
+
+    $instrExists = $instrCount != 0;
+    if ($instrExists) {
+        $app['session']->getFlashBag()->set('error', 'Passphrase already in use.');
+        return $app->redirect('/register/instructor');
+    }
 
     $passcode = hash('sha256', $password);
 
@@ -226,6 +281,19 @@ $app->post('/register', function (Request $request) use ($app) {
     }
 
     $mysqli = Connections::dbConnect();
+
+    $stmt = $mysqli->prepare("SELECT * FROM instructors where username=?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $stmt->store_result();
+    $userCount = $stmt->num_rows;
+    $stmt->close();
+
+    $userExists = $userCount != 0;
+    if ($userExists) {
+        $app['session']->getFlashBag()->set('error', 'Username already in use.');
+        return $app->redirect('/register');
+    }
 
     $stmt = $mysqli->prepare("SELECT * FROM users where username=?");
     $stmt->bind_param("s", $user);

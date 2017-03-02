@@ -2,15 +2,21 @@
 {% block content %}
 	<div id="Sign-In">
 		<fieldset style="width:90%">
-			<legend>Log-in</legend>
-			<form method="POST" action="instructor">
+			<legend>Log-in Instructor</legend>
+			<form method="POST" action="/login/instructor">
 				<div>
-					<label>Master Instructor Passphrase</label>
+					<label>Username</label>
+					<input type="text" name="user" size="50">
+				</div>
+				<div>
+					<label>Password</label>
 					<input type="password" name="pass" size="50">
 				</div>
 				<br>
 				<input id="button" type="submit" name="submit" value="Log-in">
 			</form>
 		</fieldset>
+		No instructor account? <a href="/register/instructor/passphrase">Register</a>
+		User? <a href="/">Log-In</a><br>
 	</div>
 {% endblock %}
