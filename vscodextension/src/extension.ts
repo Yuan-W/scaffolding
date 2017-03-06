@@ -1,42 +1,37 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import ApplicationState from './ApplicationState';
+import { documentTextChangeHandler } from './actions';
+import loginFlow from './loginFlow';
+import createAccountFlow from './createAccountFlow';
 
-import CodeChanges from './CodeChanges';
-import CodeChangeSender from './CodeChangeSender';
-
-export function documentTextChangeHandler(codeChanges, sender) {
-    return (e) => {
-        const { document } = e;
-        const text = document.getText();
-        codeChanges.updateChanges(text);
-        sender.resetSendInterval(5000);
-    };
-}
-
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
     console.log('Scaffolding is active!');
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
+    const state = new ApplicationState;
+    vscode.workspace.onDidChangeTextDocument(documentTextChangeHandler(state));
 
-    let disposable = vscode.commands.registerCommand('extension.scaffoldStart', () => {
-        // The code you place here will be executed every time your command is executed
+    let disposable = vscode.commands.registerCommand('extension.scaffoldBegin', () => {
+        if (!state.isAuthenticated) {
+            return vscode.window.showInformationMessage('Do you have an account?', 'Yes', 'No')
+                .then(option => {
+                    if (option === 'Yes') {
+                        return loginFlow(vscode, state);
+                    }
+                    return createAccountFlow(vscode);
+                });
+        }
+        vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
+    });
 
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Start Coding');
-
-        const codeChanges = new CodeChanges;
-        const sender = new CodeChangeSender(codeChanges);
-
-        let listener = vscode.workspace.onDidChangeTextDocument(documentTextChangeHandler(codeChanges, sender));
-
-        context.subscriptions.push(listener);
+    vscode.commands.registerCommand('extension.requestHint', () => {
+        if (!state.isAuthenticated) {
+            vscode.window.showWarningMessage('Please run \'Scaffolding: begin exercise\' first');
+        } else {
+            vscode.window.showInformationMessage('This is a hint')
+                .then(console.log);
+        }
     });
 
     context.subscriptions.push(disposable);

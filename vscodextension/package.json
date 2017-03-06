@@ -17,12 +17,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.scaffoldStart",
-        "title": "Scaffolding: Start Exercise"
+        "command": "extension.scaffoldBegin",
+        "title": "Scaffolding: Begin Exercise"
       },
       {
-        "command": "extension.scaffoldEnd",
+        "command": "extension.scaffoldFinish",
         "title": "Scaffolding: Finish Exercise"
+      },
+      {
+        "command": "extension.requestHint",
+        "title": "Scaffolding: Request Hint"
       }
     ]
   },
