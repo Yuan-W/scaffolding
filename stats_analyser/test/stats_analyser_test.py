@@ -14,11 +14,9 @@ class StatsAnalyserTestCase(unittest.TestCase):
         sys._called_from_test = True
         self.app = stats_analyser.app.test_client()
 
-    def test_parameter_existence(self):
-        response = self.app.get("/1/docs")
+    def test_connect(self):
+        response = self.app.get("/docs/1")
         self.assertEqual(response.status_code, 200)
-        # assrt b'test_status must exists' in response.data
-
 
 if __name__ == '__main__':
     unittest.main()
