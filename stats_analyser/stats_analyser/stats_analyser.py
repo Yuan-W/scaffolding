@@ -37,21 +37,23 @@ manager.add_viewdef(docs_by_instructor)
 manager.sync(app)
 
 #return the docs
-@app.route("/<exercise_id>/average")
+@app.route("/average/<exercise_id>")
 def average(exercise_id):
   ave = 0;
   num = 0;
   for row in docs_by_exercise(g.couch)[int(exercise_id)]:
-    row = edict(row.value)
-    ave += row.time_spent
+    #row = edict(row.value)
+    ave += row.value
     num += 1
   if num != 0:
-    return json.dumps(ave /(num * 1.0))
+    ave_response = dict()
+    ave_response['average_time_spent'] = ave /(num * 1.0)
+    return json.dumps(ave_response)
   else:
     return null
 
 #return all the docs related to the instructor
-@app.route("/<instructor_id>/docs")
+@app.route("/docs/<instructor_id>")
 def docs(instructor_id):
   response = dict()
   response['docs'] = []
