@@ -29,5 +29,9 @@ before_script:
   - FLASK_CONFIGURATION='testing' FLASK_APP=stats_updater/stats_updater/stats_updater.py flask initdb
   
 script: 
+  - make launch
   - FLASK_CONFIGURATION='testing' coverage run -m pytest -v
   - coverage report
+
+after_script:
+  - make shutdown
