@@ -7,7 +7,7 @@ $dotenv->load();
 function env($name, $defaultValue)
 {
     $envValue = getenv($name);
-    return (null !== $envValue) ? $envValue : $defaultValue;
+    return ($envValue || $envValue === '') ? $envValue : $defaultValue;
 }
 
 class Connections
