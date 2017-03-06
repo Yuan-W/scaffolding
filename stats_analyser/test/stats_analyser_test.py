@@ -15,7 +15,7 @@ class StatsAnalyserTestCase(unittest.TestCase):
         self.app = stats_analyser.app.test_client()
 
     def test_connect(self):
-        response = self.app.get("/1/docs")
+        response = self.app.get("/docs/1")
         self.assertEqual(response.status_code, 200)
 
 if __name__ == '__main__':
