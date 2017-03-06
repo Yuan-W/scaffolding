@@ -15,13 +15,14 @@ CREATE TABLE oauth_scopes (scope TEXT, is_default BOOLEAN);
 
 CREATE TABLE users (id int(6) NOT NULL AUTO_INCREMENT, username VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, instructor VARCHAR(255) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE instructors (id int(6) NOT NULL AUTO_INCREMENT, username VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, passphrase VARCHAR(255) NOT NULL, PRIMARY KEY (id));
+CREATE TABLE instructorMaster (passphrase VARCHAR(255) NOT NULL, PRIMARY KEY (passphrase));
 ```
 
 Create an oauth client with id 'testclient' and an instructor with name and passphrase 'test':
 ```sql
 INSERT INTO oauth_clients (client_id, client_secret, redirect_uri) VALUES ("testclient", "testpass", "http://fake/");
 INSERT INTO instructors (instructor, pass, passphrase) VALUES ("test", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
-
+INSERT INTO instructorMaster (passphrase) VALUES ("1e089e3c5323ad80a90767bdd5907297b4138163f027097fd3bdbeab528d2d68");
 ```
 
 Copy `.env.example` to `.env` and modify with the correct MySQL local login credentials.
