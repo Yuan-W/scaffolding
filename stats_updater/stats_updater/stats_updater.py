@@ -21,25 +21,13 @@ app.config.from_object(config[config_name])
 # app.config.from_pyfile('../config.cfg')
 
 stats_db_url = app.config['STATS_DB_ADDRESS']
-exercise_db_url = app.config['EXERCISE_DB_ADDRESS']
 
 stats_parser = reqparse.RequestParser()
 stats_parser.add_argument('instructor_id', type=int, location='json', required=True, help='instructor_id must exists and be a integer')
 stats_parser.add_argument('time_spent', type=int, location='json', required=True, help='time_spent must exists and be a integer')
 stats_parser.add_argument('code', location='json', required=True, help='code must exists')
 stats_parser.add_argument('test_status', location='json', required=True, help='test_status must exists')
-
-exercise_parser = reqparse.RequestParser()
-exercise_parser.add_argument('test_script', type=int, location='json', required=True, help='test_script must exists and be a integer')
-exercise_parser.add_argument('hints', location='json', required=True, help='hints must exists and be a integer')
-
-class Stats(object):
-    def __init__(self, student_id, exercise_id, time_spent, test_status, instructor_id):
-        self.student_id = student_id
-        self.exercise_id = exercise_id
-        self.time_spent = time_spent
-        self.test_status = test_status
-        self.instructor_id = instructor_id
+stats_parser.add_argument('hints_number', type=int, location='json', required=True, help='hints_number must exists')
 
 class StatsUpdater(Resource):
     def get(self, student_id, exercise_id):
@@ -58,6 +46,7 @@ class StatsUpdater(Resource):
         data['time_spent'] = args['time_spent']
         data['test_status'] = args['test_status']
         data['code'] = args['code']
+        data['hints_number'] = args['hints_number']
         response = requests.post('%s/progress/_design/stats/_update/default/%d_%d' % (stats_db_url, student_id, exercise_id),
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'
@@ -67,37 +56,6 @@ class StatsUpdater(Resource):
         json_resp['rev'] = response.headers['X-Couch-Update-NewRev']
 
         return json_resp, response.status_code
-
-    # def put(self, student_id, exercise_id):
-    #     args = request.json
-    #     data = dict()
-    #     doc_id = args['id']
-    #     data['_rev'] = args['rev'] 
-    #     data['time_spent'] = args['time_spent']
-    #     data['test_status'] = args['test_status']
-    #     data['code'] = args['code']
-    #     response = requests.put('%s/progress/%s' % (stats_db_url, doc_id),
-    #                                 data=json.dumps(data),
-    #                                 headers={'Content-Type': 'application/json'
-    #                                 })
-
-    #     return response.json(), response.status_code
-
-class ExerciseUpdater(Resource):
-    def get(self, exercise_id):
-        return
-
-    def post(self, exercise_id):
-        args = exercise_parser.parse_args()
-        data = dict()
-        data['test_script'] = args['test_script']
-        data['hits'] = args['hits']
-        response = requests.post('%s/exercise/' % exercise_db_url,
-                                    data=json.dumps(data),
-                                    headers={'Content-Type': 'application/json'
-                                    })
-
-        return response.json(), response.status_code
 
 @app.cli.command('initdb')
 def init_db():
@@ -122,6 +80,7 @@ def init_db():
                                                      'instructor_id': fields['instructor_id'],
                                                      'time_spent': fields['time_spent'],
                                                      'test_status': fields['test_status'],
+                                                     'hints_number': fields['hints_number'],
                                                      'code': fields['code']
                                                      }, 
                                                      toJSON({'message': 'doc created'})
@@ -166,7 +125,6 @@ def cleardb():
 
 
 api.add_resource(StatsUpdater, '/stats/<int:student_id>/<int:exercise_id>')
-api.add_resource(ExerciseUpdater, '/test/<int:exercise_id>')
 
 # @app.route('/get/<int:user_id>', methods=['GET'])
 # def get_stats():

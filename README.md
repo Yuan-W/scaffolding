@@ -34,6 +34,15 @@ Error Responses | HTTP 401 Unauthorized, <br> HTTP 404 Not Found
 
 ##StatsUpdater
 
+| Title | Content |
+--- | ---
+URL | /stats/\<int:student_id\>/\<int:exercise_id\>
+Method Allowed | POST
+Headers Required | Content-Type=application/json
+Data Params |{<br>instructor\_id : [int], <br>time\_spent : [int], <br>code : [string], <br>test\_status : [string], <br>hints\_number : [int]<br>}
+Successful Response | Code: HTTP 201 Created, <br>Content: {<br>id : [string], <br>rev : [string]<br>}
+Error Responses | HTTP 400 Bad Request
+
 ##TestManagement
 
 ##TestRunner

@@ -9,8 +9,9 @@ instructor_id = 3
 time_spent = 300
 code = 'code'
 test_status = 'failed'
+hints_number = 1 
 
-def post(app, student_id, exercise_id, test_status, time_spent, instructor_id, code):
+def post(app, student_id, exercise_id, test_status, time_spent, instructor_id, code, hints_number):
     request_data = dict()
     if test_status != None:
         request_data['test_status'] = test_status
@@ -18,6 +19,8 @@ def post(app, student_id, exercise_id, test_status, time_spent, instructor_id, c
         request_data['time_spent'] = time_spent
     if instructor_id != None:
         request_data['instructor_id'] = instructor_id
+    if hints_number != None:
+        request_data['hints_number'] = hints_number
     if code != None:
         request_data['code'] = code
     return app.post('/stats/%d/%d' % (student_id, exercise_id), data=json.dumps(request_data), content_type='application/json')
@@ -36,31 +39,35 @@ class StatsTestCase(unittest.TestCase):
         return
 
     def test_parameter_existence(self):
-        response = post(self.app, student_id, exercise_id, None, time_spent, instructor_id, code)
+        response = post(self.app, student_id, exercise_id, None, time_spent, instructor_id, code, hints_number)
         self.assertEqual(400, response.status_code)
         assert b'test_status must exists' in response.data
 
-        response = post(self.app, student_id, exercise_id, test_status, None, instructor_id, code)
+        response = post(self.app, student_id, exercise_id, test_status, None, instructor_id, code, hints_number)
         self.assertEqual(400, response.status_code)
         assert b'time_spent must exists and be a integer' in response.data
 
-        response = post(self.app, student_id, exercise_id, test_status, time_spent, None, code)
+        response = post(self.app, student_id, exercise_id, test_status, time_spent, None, code, hints_number)
         self.assertEqual(400, response.status_code)
         assert b'instructor_id must exists' in response.data
 
-        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, None)
+        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, None, hints_number)
         self.assertEqual(400, response.status_code)
         assert b'code must exists' in response.data
 
+        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, hints_number, None)
+        self.assertEqual(400, response.status_code)
+        assert b'hints_number must exists' in response.data
+
     def test_complete_post(self):
-        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, code)
+        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, code, hints_number)
         json_data = json.loads(response.data)
         self.doc_ids.append((json_data['id'], json_data['rev']))
         self.assertEqual(201, response.status_code)
 
     def test_get(self):
-        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, code)
-        print response
+        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, code, hints_number)
+        # print response
         json_data = json.loads(response.data)
         doc_id = json_data['id']
         doc_rev = json_data['rev']
@@ -79,9 +86,10 @@ class StatsTestCase(unittest.TestCase):
         self.assertEqual(instructor_id, doc['value']['instructor_id'])
         self.assertEqual(code, doc['value']['code'])
         self.assertEqual(test_status, doc['value']['test_status'])
+        self.assertEqual(hints_number, doc['value']['hints_number'])
 
     def test_update(self):
-        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, code)
+        response = post(self.app, student_id, exercise_id, test_status, time_spent, instructor_id, code, hints_number)
         json_data = json.loads(response.data)
         doc_id = json_data['id']
         doc_rev = json_data['rev']
@@ -90,8 +98,9 @@ class StatsTestCase(unittest.TestCase):
         new_time_sepnt = time_spent + 100
         new_code = code*3
         new_test_status = 'passed'
+        new_hints_number = hints_number + 1
 
-        response = post(self.app, student_id, exercise_id, new_test_status, new_time_sepnt, instructor_id, new_code)
+        response = post(self.app, student_id, exercise_id, new_test_status, new_time_sepnt, instructor_id, new_code, new_hints_number)
         json_data = json.loads(response.data)
         
         self.assertEqual(201, response.status_code)
@@ -108,6 +117,7 @@ class StatsTestCase(unittest.TestCase):
         self.assertEqual(instructor_id, doc['value']['instructor_id'])
         self.assertEqual(new_code, doc['value']['code'])
         self.assertEqual(new_test_status, doc['value']['test_status'])
+        self.assertEqual(new_hints_number, doc['value']['hints_number'])
 
 if __name__ == '__main__':
     unittest.main()
