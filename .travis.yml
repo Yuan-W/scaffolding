@@ -26,6 +26,7 @@ before_script:
   - curl -X PUT localhost:5984/progress
   - touch flask_public_server/config.cfg
   - FLASK_CONFIGURATION='testing' FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
+  - FLASK_CONFIGURATION='testing' FLASK_APP=stats_updater/stats_updater/stats_updater.py flask initdb
   
 script: 
   - FLASK_CONFIGURATION='testing' coverage run -m pytest -v
