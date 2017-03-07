@@ -1,6 +1,6 @@
 import {
     LOGIN_URL
-} from './constants';
+} from '../constants';
 
 export default function createAccountFlow(vscode) {
     return vscode.window

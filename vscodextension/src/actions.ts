@@ -4,6 +4,7 @@ import {
     AUTHORIZE_TOKEN_URL,
     HINTS_URL
 } from './constants';
+import ApplicationState from './ApplicationState';
 
 function debounce(fn, delay) {
     var timer = null;
@@ -16,7 +17,15 @@ function debounce(fn, delay) {
     };
 }
 
-export function documentTextChangeHandler(state) {
+export function showHint(vscode, message) {
+    return vscode.window.showInformationMessage(message);
+}
+
+export function showLoginSuccess(vscode) {
+    return vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
+}
+
+export function documentTextChangeHandler(state: ApplicationState) {
     return debounce(
         function (e) {
             const { document } = e;
@@ -29,8 +38,10 @@ export function documentTextChangeHandler(state) {
 
 export function sendCodeChanges(payload) {
     return axios.post(HINTS_URL, payload)
-        .then(() => { })
-        .catch((err) => console.error(err));
+        .then(
+            ({ data }) => data,
+            (err) => console.error(err)
+        );
 }
 
 export function fetchToken(token) {
