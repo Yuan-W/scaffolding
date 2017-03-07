@@ -63,6 +63,38 @@ $app->get('/login', function () use ($app) {
     return $app['twig']->render('login.twig');
 });
 
+$app->post('/api/login',function (Request $request) use ($app) {
+    $username = $request->get('username');
+    $password = $request->get('password');
+    if (empty($username) || empty($password)) {
+        return $app->json('User or password not set', 400);
+    }
+    $mysqli = Connections::dbConnect();
+    $passcode = hash('sha256', $password);
+    $stmt = $mysqli->prepare("SELECT * FROM users where username=? AND pass=?");
+    $stmt->bind_param("ss", $username, $passcode);
+    $stmt->execute();
+    $stmt->store_result();
+    $count = $stmt->num_rows;
+    $stmt->close();
+    if ($count != 1) {
+        $app->abort(404, 'Username or Password incorrect.');
+    }
+    
+    $oauthRequest = OAuth2\Request::createFromGlobals();
+    $oauthResponse = new OAuth2\Response();
+    
+    if (!$app['oauthServer']->validateAuthorizeRequest($oauthRequest, $oauthResponse)) {
+        $oauthResponse->send();
+    }
+    $isAuthorized = true;
+    $userId = $username;
+    $app['oauthServer']->handleAuthorizeRequest($oauthRequest, $oauthResponse, $isAuthorized, $userId);
+    
+    $code = substr($oauthResponse->getHttpHeader('Location'), strpos($oauthResponse->getHttpHeader('Location'), 'code=')+5, 40);
+    return $app->json($code);
+});
+
 $app->post('/login', function (Request $request) use ($app) {
     $user = $request->get('user');
     $password = $request->get('pass');
