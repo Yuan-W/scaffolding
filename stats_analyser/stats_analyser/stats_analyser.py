@@ -3,12 +3,20 @@ import json
 from flask import Flask, g
 import flaskext.couchdb
 from easydict import EasyDict as edict
+from config import Development, Production, Testing
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+#create the view for the specific instructor and specific exercise
+docs_by_exercise = flaskext.couchdb.ViewDefinition('docs','instructor_id','''\
+    function(doc){
+        emit([doc.instructor_id,doc.exercise_id],doc);
+    }
+  ''')
+
 #create the view for average time according to the exercise_id
-docs_by_exercise = flaskext.couchdb.ViewDefinition('docs','exercise_id','''\
+time_by_exercise = flaskext.couchdb.ViewDefinition('docs','exercise_id','''\
     function(doc){
         emit(doc.exercise_id,doc.time_spent);
     }
@@ -32,8 +40,9 @@ app.config.update(
 )
 manager = flaskext.couchdb.CouchDBManager()
 manager.setup(app)
-manager.add_viewdef(docs_by_exercise)
+manager.add_viewdef(time_by_exercise)
 manager.add_viewdef(docs_by_instructor)
+manager.add_viewdef(docs_by_exercise)
 manager.sync(app)
 
 #return the docs
@@ -41,8 +50,7 @@ manager.sync(app)
 def average(exercise_id):
   ave = 0;
   num = 0;
-  for row in docs_by_exercise(g.couch)[int(exercise_id)]:
-    #row = edict(row.value)
+  for row in time_by_exercise(g.couch)[int(exercise_id)]:
     ave += row.value
     num += 1
   if num != 0:
@@ -60,6 +68,15 @@ def docs(instructor_id):
   for row in docs_by_instructor(g.couch)[int(instructor_id)]:
     response['docs'].append(row.value)
   return json.dumps(response)
+
+#return all the docs according to the exercise_id and instructor_id
+@app.route("/newdocs/<instructor_id>/<exercise_id>")
+def newdocs(instructor_id,exercise_id):
+  mResponse = dict()
+  mResponse['docs'] = []
+  for row in docs_by_exercise(g.couch)[int(instructor_id),int(exercise_id)]:
+    mResponse['docs'].append(row.value)
+  return json.dumps(mResponse)
 
 if __name__ == '__main__':
   app.run(debug=True, port=5005)
