@@ -11,6 +11,9 @@ python:
   - "2.6"
   - "2.7"
 
+env:
+  - FLASK_CONFIGURATION=testing
+
 before_install:
   - mysql -e 'CREATE DATABASE oauth;'
 
@@ -25,9 +28,13 @@ install:
 before_script:
   - curl -X PUT localhost:5984/progress
   - touch flask_public_server/config.cfg
-  - FLASK_CONFIGURATION='testing' FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
-  - FLASK_CONFIGURATION='testing' FLASK_APP=stats_updater/stats_updater/stats_updater.py flask initdb
+  - FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
+  - FLASK_APP=stats_updater/stats_updater/stats_updater.py flask initdb
   
 script: 
-  - FLASK_CONFIGURATION='testing' coverage run -m pytest -v
+  - make launch
+  - coverage run -m pytest -v
   - coverage report
+
+after_script:
+  - make shutdown
