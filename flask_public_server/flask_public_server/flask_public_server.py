@@ -71,7 +71,7 @@ def fetch_student_ids(username):
     instructor_id from users table in a database"""
     connection = mysql.connect()
     cursor = connection.cursor()
-    sql = "SELECT `id`, `instructor_id` FROM `users` WHERE `username`=%s"
+    sql = "SELECT `id`, `instructor` FROM `users` WHERE `username`=%s"
     cursor.execute(sql, (username, )) #SQL query for the student_id
     try:
         student_id, instructor_id = cursor.fetchone()
@@ -111,10 +111,10 @@ def forward_stats():
     if 'Content-Type' in req.headers and \
       req.headers['Content-Type'] == 'application/json': #check reply
         resp = Response(dumps(req.json()), mimetype='application/json')
-        resp.set_data(req.json()) #fill a response
+        #resp.set_data(req.json()) #fill a response
         return resp #serve it back
     else:
-        return Response("No JSON received in stats response\n", status='404')
+        return Response("No JSON received in stats response\n", status='500')
 
 @app.route('/hints', methods=['POST'])
 def forward_hints():
@@ -155,7 +155,43 @@ def forward_hints():
         #resp.set_data(req.json()) #fill a response
         return resp #serve it back
     else:
-        return Response("No JSON received in hints response payload\n", status='404')
+        return Response("No JSON received in hints response payload\n", status='500')
+
+
+@app.route('/testmanagement', methods=['POST'])
+def forward_test_management():
+    """route /testmanagement response, looks for access_token in a header, and a json
+    POST query. queries the db for access_token, and if finds an user_id,
+    checks token expiration.
+    and if found it then forwards the POST to server_test_management, accepts its reply
+    and serves it back as initial request's response"""
+
+    if 'access_token' not in request.headers:
+        return Response("No access_token in POST header\n", status='401')
+    access_token = request.headers['access_token'].encode('utf-8')
+    if app.debug:
+        print(access_token)
+    user_id = fetch_user_id(access_token) #query db
+    if not user_id:
+        return Response("Wrong or expired access_token in POST header\n", status='401')
+    instructor_id = fetch_instructor_id(user_id) #query db
+    if not instructor_id:
+        return Response("Inconsistent DB state, access_token doesn't provide a valid user\n", status='401')
+    
+    server_test_management = app.config['ADDRESS_TEST_MANAGEMENT']
+
+    post_data = request.json
+    post_data['instructor_id'] = instructor_id
+    headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+
+    req = post(server_test_management + str(instructor_id), json=post_data, headers=headers) #forward POST
+    if 'Content-Type' in req.headers and \
+        req.headers['Content-Type'] == 'application/json': #check reply
+        resp = Response(dumps(req.json()), mimetype='application/json')
+        #resp.set_data(req.json()) #fill a response
+        return resp #serve it back
+    else:
+        return Response("No JSON received in test management response payload\n", status='500')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True, port=5000)
