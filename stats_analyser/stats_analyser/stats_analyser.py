@@ -65,8 +65,12 @@ def average(exercise_id):
 def docs(instructor_id):
   response = dict()
   response['docs'] = []
+  response['exercise'] = []
   for row in docs_by_instructor(g.couch)[int(instructor_id)]:
     response['docs'].append(row.value)
+    row = edict(row.value)
+    if row.exercise_id not in response['exercise']:
+      response['exercise'].append(row.exercise_id)
   return json.dumps(response)
 
 #return all the docs according to the exercise_id and instructor_id
