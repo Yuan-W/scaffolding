@@ -71,6 +71,7 @@ def docs(instructor_id):
     row = edict(row.value)
     if row.exercise_id not in response['exercise']:
       response['exercise'].append(row.exercise_id)
+    response['exercise'].sort()
   return json.dumps(response)
 
 #return all the docs according to the exercise_id and instructor_id
