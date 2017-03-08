@@ -28,11 +28,26 @@ def init_db():
     cursor.close()
     connection.close()
 
+def seed_db():
+    connection = mysql.connect()
+    cursor = connection.cursor()
+    with app.open_resource('../seed.sql', mode='rb') as f:
+        cursor.execute(f.read())
+    cursor.close()
+    connection.commit()
+    connection.close()
+
 @app.cli.command('initdb')
 def initdb_command():
     """Initializes the database."""
     init_db()
     print('Initialized the database.')
+
+@app.cli.command('seeddb')
+def seeddb_command():
+    """Seed the database."""
+    seed_db()
+    print('Seed the database.')
 
 def fetch_user_id(token):
     """for a given access_token returns a string user_id
@@ -57,9 +72,9 @@ def fetch_instructor_id(username):
     """for a given username returns an integer id from users table in a database"""
     connection = mysql.connect()
     cursor = connection.cursor()
-    sql = "SELECT `id` FROM `users` WHERE `username`=%s"
+    sql = "SELECT `instructor` FROM `users` WHERE `username`=%s"
     cursor.execute(sql, (username, )) #SQL query for the instructor_id
-    instructor_id = cursor.fetchone()
+    instructor_id = int(cursor.fetchone()[0])
     cursor.close()
     connection.close()
     if app.debug:        
@@ -104,12 +119,10 @@ def forward_stats():
         return Response("Inconsistent DB state, access_token doesn't provide a valid user\n", status='401')
 
     server_stats = app.config['ADDRESS_STATS']
-
     req = get(server_stats + str(instructor_id)) #forward GET
     if app.debug:
         print(req.text)
-    if 'Content-Type' in req.headers and \
-      req.headers['Content-Type'] == 'application/json': #check reply
+    if 'Content-Type' in req.headers:
         resp = Response(dumps(req.json()), mimetype='application/json')
         #resp.set_data(req.json()) #fill a response
         return resp #serve it back
