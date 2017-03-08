@@ -1,12 +1,22 @@
 import sys
+import os
 import json
-from flask import Flask, g
+from flask import Flask, g,jsonify,request
+from flask_restful import reqparse, Api, Resource, marshal_with, fields
 import flaskext.couchdb
 from easydict import EasyDict as edict
 from config import Development, Production, Testing
 
+config = {
+    "production": Production,
+    "testing": Testing,
+    "development": Development,
+    "default": Development
+}
+
 app = Flask(__name__)
-app.config.from_object(__name__)
+config_name = os.getenv('FLASK_CONFIGURATION', 'default')
+app.config.from_object(config[config_name])
 
 #create the view for the specific instructor and specific exercise
 docs_by_exercise = flaskext.couchdb.ViewDefinition('docs','instructor_id','''\
@@ -29,15 +39,6 @@ docs_by_instructor = flaskext.couchdb.ViewDefinition('docs','instructor_id','''\
     }
   ''')
 
-test_url = 'http://localhost:5984'
-db_url = 'http://admin:ANfCd8PDW8QhNAWd@10.0.0.6:5984'
-
-#configuration
-app.config.update(
-  DEBUG = True,
-  COUCHDB_SERVER = test_url,
-  COUCHDB_DATABASE = 'progress'
-)
 manager = flaskext.couchdb.CouchDBManager()
 manager.setup(app)
 manager.add_viewdef(time_by_exercise)
@@ -56,7 +57,7 @@ def average(exercise_id):
   if num != 0:
     ave_response = dict()
     ave_response['average_time_spent'] = ave /(num * 1.0)
-    return json.dumps(ave_response)
+    return jsonify(ave_response)
   else:
     return null
 
@@ -72,7 +73,7 @@ def docs(instructor_id):
     if row.exercise_id not in response['exercise']:
       response['exercise'].append(row.exercise_id)
     response['exercise'].sort()
-  return json.dumps(response)
+  return jsonify(response)
 
 #return all the docs according to the exercise_id and instructor_id
 @app.route("/newdocs/<instructor_id>/<exercise_id>")
@@ -81,7 +82,7 @@ def newdocs(instructor_id,exercise_id):
   mResponse['docs'] = []
   for row in docs_by_exercise(g.couch)[int(instructor_id),int(exercise_id)]:
     mResponse['docs'].append(row.value)
-  return json.dumps(mResponse)
+  return jsonify(mResponse)
 
 if __name__ == '__main__':
   app.run(debug=True, port=5005)
