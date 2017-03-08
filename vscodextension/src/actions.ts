@@ -51,9 +51,9 @@ export function fetchToken(token) {
     );
 }
 
-export function fetchAuthorizationCode(username, password) {
+export function fetchAuthorizationCode(username, password, clientId='testclient') {
     return axios.post(
         LOGIN_API_URL,
-        `username=${username}&password=${password}&client_id=testclient&response_type=code&state=xyz`
+        `username=${username}&password=${password}&client_id=${clientId}&response_type=code&state=xyz`
     );
 }

@@ -3,6 +3,9 @@ import {
     fetchToken,
     showLoginSuccess
 } from '../actions';
+import {
+    clientId
+} from '../constants';
 
 export default function loginFlow(vscode, state) {
     return vscode.window.showInputBox({
@@ -15,8 +18,17 @@ export default function loginFlow(vscode, state) {
             password: true
         });
         return Promise.all([passwordInput, username]);
-    }).then(([username, password]) => {
-        return fetchAuthorizationCode(username, password);
+    }).then(([password, username]) => {
+        const confirmationInput = vscode.window.showInformationMessage(`Do you authorize ${clientId}?`, 'Yes', 'No')
+        return Promise.all([confirmationInput, username, password]);
+    }).then(([authorisationResponse, username, password]) => {
+        if(authorisationResponse === 'Yes') {
+            return Promise.all([username, password]);
+        }
+        throw new Error(`${clientId} not authorized`);
+    })
+    .then(([username, password]) => {
+        return fetchAuthorizationCode(username, password, clientId);
     }).then(({ data }) => {
         return data;
     })

@@ -9,6 +9,11 @@ import {
     requestHintFlow
 } from './flows';
 
+process.on('unhandledRejection', function(reason, p){
+    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+    vscode.window.showErrorMessage(reason);
+});
+
 export function activate(context: vscode.ExtensionContext) {
     const state = new ApplicationState;
 
