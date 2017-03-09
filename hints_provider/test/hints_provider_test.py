@@ -8,8 +8,8 @@ exercise_id = 2
 instructor_id = 3
 time_spent = 300
 code = 'test code'
+code = "def reverse_list(l):\n\treturn l[::-1]"
 hints_number = 1
-
 
 def post(app, code, student_id, exercise_id, instructor_id, time_spent, hints_number):
     request_data = dict()

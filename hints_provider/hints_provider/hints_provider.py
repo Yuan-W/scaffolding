@@ -19,6 +19,8 @@ app.config.from_object(config[config_name])
 # app.config.from_pyfile('../config.cfg')
 
 stats_updater_url = app.config['ADDRESS_STATS_UPDATER']
+test_runner_url = app.config['ADDRESS_TEST_RUNNER']
+test_management_url = app.config['ADDRESS_TEST_MANAGEMENT']
 
 resource_fields = {
     'student_id':   fields.Integer,
@@ -36,6 +38,10 @@ parser.add_argument('code', location='json', required=True, help='code must exis
 
 # Create a test instance on test server, and return test result
 def get_test_result(code, script):
+    url = '%s/test/' % (test_runner_url)
+    data = {"code":code, "testCode":script}
+    response = requests.post(url, headers={'Content-Type': 'application/json'}, json=data)
+    print response.json(), response.status_code
     return 'Failed'
 
 def store_stats(student_id, exercise_id, stat):
@@ -48,7 +54,9 @@ def get_hint(exercise_id):
     return 'hints for exercise %d' % exercise_id
 
 def get_script(exercise_id):
-    return 'script for exercise %d' % exercise_id
+    url = '%s/exercises/%d/tests' % (test_management_url, exercise_id)
+    response = requests.get(url, headers={'Content-Type': 'application/json'})
+    return response.json(), response.status_code
 
 class Hint(object):
     def __init__(self, student_id, exercise_id, hints):
@@ -67,7 +75,11 @@ class HintsProvider(Resource):
         student_id = args['student_id']
         exercise_id = args['exercise_id']
 
-        script = get_script(exercise_id)
+        response = get_script(exercise_id)
+        if response[1] != 200:
+            return response
+        script = response[0]['test_code']
+
         test_result = get_test_result(code, script)
 
         hint = get_hint(exercise_id)
@@ -82,7 +94,6 @@ class HintsProvider(Resource):
         response = store_stats(student_id, exercise_id, stat)
         if response[1] == 201:
             return Hint(student_id=student_id, exercise_id=exercise_id, hints=hint)
-        print response
         return response
 
 api.add_resource(HintsProvider, '/hints')

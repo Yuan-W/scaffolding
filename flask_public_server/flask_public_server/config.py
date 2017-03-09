@@ -10,7 +10,7 @@ class Development(object):
 
 class Testing(Development):
   TESTING = True
-  MYSQL_DATABASE_USER = 'travis'
+  MYSQL_DATABASE_USER = 'root'
   MYSQL_DATABASE_PASSWORD = ''
   MYSQL_DATABASE_DB = 'oauth'
   MYSQL_DATABASE_HOST = 'localhost'
