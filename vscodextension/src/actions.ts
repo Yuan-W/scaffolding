@@ -6,7 +6,7 @@ import {
 } from './constants';
 import ApplicationState from './ApplicationState';
 
-function debounce(fn, delay) {
+export function debounce(fn, delay) {
     var timer = null;
     return function () {
         var context = this, args = arguments;
@@ -26,14 +26,11 @@ export function showLoginSuccess(vscode) {
 }
 
 export function documentTextChangeHandler(state: ApplicationState) {
-    return debounce(
-        function (e) {
-            const { document } = e;
-            const code = document.getText();
-            state.setCode(code);
-        },
-        500
-    );
+    return function (e) {
+        const { document } = e;
+        const code = document.getText();
+        state.setCode(code);
+    };
 }
 
 export function sendCodeChanges(payload) {

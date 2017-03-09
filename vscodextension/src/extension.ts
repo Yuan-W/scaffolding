@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import ApplicationState from './ApplicationState';
-import { documentTextChangeHandler } from './actions';
+import { documentTextChangeHandler, debounce } from './actions';
 import {
     loginFlow,
     createAccountFlow,
@@ -17,7 +17,7 @@ process.on('unhandledRejection', function(reason, p){
 export function activate(context: vscode.ExtensionContext) {
     const state = new ApplicationState;
 
-    let documentChange = vscode.workspace.onDidChangeTextDocument(documentTextChangeHandler(state));
+    let documentChange = vscode.workspace.onDidChangeTextDocument(debounce(documentTextChangeHandler(state), 500));
 
     let scaffoldBegin = vscode.commands.registerCommand('extension.scaffoldBegin', () => {
         if (!state.isAuthenticated) {
