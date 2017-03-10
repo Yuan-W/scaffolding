@@ -34,6 +34,7 @@ install:
 
 before_script:
   - curl -X PUT localhost:5984/progress
+  - curl -X PUT localhost:5984/hints
   - touch flask_public_server/config.cfg
   - FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
   - FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask seeddb
