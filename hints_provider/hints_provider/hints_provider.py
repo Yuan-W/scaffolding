@@ -41,15 +41,13 @@ def get_test_result(code, script):
     url = '%s/test/' % (test_runner_url)
     data = {"code":code, "testCode":script}
     response = requests.post(url, headers={'Content-Type': 'application/json'}, json=data)
-    print response.json(), response.status_code
-    return 'Failed'
+    return response.json(),  response.status_code
 
 def store_stats(student_id, exercise_id, stat):
     url = '%s/stats/%d/%d' % (stats_updater_url, student_id, exercise_id)
     response = requests.post(url, headers={'Content-Type': 'application/json'}, json=stat)
     return response.json(), response.status_code
     
-
 def get_hint(exercise_id):
     return 'hints for exercise %d' % exercise_id
 
@@ -80,7 +78,10 @@ class HintsProvider(Resource):
             return response
         script = response[0]['test_code']
 
-        test_result = get_test_result(code, script)
+        response = get_test_result(code, script)
+        if response[1] != 200:
+            return response[0]['errors'], response[1]
+        test_result = response[0]['results']
 
         hint = get_hint(exercise_id)
         
