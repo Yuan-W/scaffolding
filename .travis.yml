@@ -3,8 +3,11 @@ language: python
 os:
   - linux
 
+dist: trusty
+sudo: required
+
 services:
-  - couchdb
+  - docker
   - mysql
 
 python:
@@ -18,24 +21,34 @@ before_install:
   - mysql -e 'CREATE DATABASE oauth;'
 
 install:
+  - sudo apt install -q -y couchdb
   - pip install -r hints_provider/requirements.txt
   - pip install -r stats_updater/requirements.txt
   - pip install -r flask_public_server/requirements.txt
   - pip install -r stats_analyser/requirements.txt
   - pip install -r test_management/requirements.txt
   - pip install coverage
+  - nvm install node
+  - nvm use node
+  - npm install -g npm
 
 before_script:
   - curl -X PUT localhost:5984/progress
+  - curl -X PUT localhost:5984/hints
   - touch flask_public_server/config.cfg
   - FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
   - FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask seeddb
   - FLASK_APP=stats_updater/stats_updater/stats_updater.py flask initdb
+  - cd test_runner/setup && sh ./UpdateDocker.sh
+  - cd ../../
+  - npm install --prefix test_runner/
   
 script: 
-  - make launch
+  - make launch > server.log
+  - sleep 5
   - coverage run -m pytest -v
   - coverage report
 
 after_script:
   - make shutdown
+  - cat server.log

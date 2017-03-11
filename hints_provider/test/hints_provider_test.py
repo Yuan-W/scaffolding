@@ -8,8 +8,9 @@ exercise_id = 2
 instructor_id = 3
 time_spent = 300
 code = 'test code'
+code = "def reverse_list(l):\n\treturn l[::-1]"
 hints_number = 1
-
+hints = {'test1':'hint1', 'test2':'hint2'}
 
 def post(app, code, student_id, exercise_id, instructor_id, time_spent, hints_number):
     request_data = dict()
@@ -27,11 +28,37 @@ def post(app, code, student_id, exercise_id, instructor_id, time_spent, hints_nu
         request_data['hints_number'] = hints_number
     return app.post('/hints', data=json.dumps(request_data), content_type='application/json')
 
+def postHint(app, instructor_id, exercise_id, hints):
+    request_data = dict()
+    if exercise_id != None:
+        request_data['exercise_id'] = exercise_id
+    if instructor_id != None:
+        request_data['instructor_id'] = instructor_id
+    if hints != None:
+        request_data['hints'] = hints
+    return app.post('/hint', data=json.dumps(request_data), content_type='application/json')
 
 class HintsProviderTestCase(unittest.TestCase):
 
     def setUp(self):
         self.app = hints_provider.app.test_client()
+
+    def test_hint_parameter(self):
+        response = postHint(self.app, None, exercise_id, hints)
+        self.assertEqual(response.status_code, 400)
+        assert b'instructor_id must exists' in response.data
+
+        response = postHint(self.app, instructor_id, None, hints)
+        self.assertEqual(response.status_code, 400)
+        assert b'exercise_id must exists' in response.data
+
+        response = postHint(self.app, instructor_id, exercise_id, None)
+        self.assertEqual(response.status_code, 400)
+        assert b'hints must exists' in response.data
+
+    def test_complete_post_hint(self):
+        response = postHint(self.app, instructor_id, exercise_id, hints)
+        self.assertEqual(response.status_code, 200)
 
     def test_parameter_existence(self):
         response = post(self.app, None, student_id, exercise_id, instructor_id, time_spent, hints_number)
@@ -40,31 +67,33 @@ class HintsProviderTestCase(unittest.TestCase):
 
         response = post(self.app, code, None, exercise_id, instructor_id, time_spent, hints_number)
         self.assertEqual(400, response.status_code)
-        assert b'student_id must exists and be a integer' in response.data
+        assert b'student_id must exists and be an integer' in response.data
 
         response = post(self.app, code, student_id, None, instructor_id, time_spent, hints_number)
         self.assertEqual(400, response.status_code)
-        assert b'exercise_id must exists and be a integer' in response.data
+        assert b'exercise_id must exists and be an integer' in response.data
 
         response = post(self.app, code, student_id, exercise_id, None, time_spent, hints_number)
         self.assertEqual(400, response.status_code)
-        assert b'instructor_id must exists and be a integer' in response.data
+        assert b'instructor_id must exists and be an integer' in response.data
 
         response = post(self.app, code, student_id, exercise_id, instructor_id, None, hints_number)
         self.assertEqual(400, response.status_code)
-        assert b'time_spent must exists and be a integer' in response.data
+        assert b'time_spent must exists and be an integer' in response.data
 
         response = post(self.app, code, student_id, exercise_id, instructor_id, time_spent, None)
         self.assertEqual(400, response.status_code)
-        assert b'hints_number must exists and be a integer' in response.data
+        assert b'hints_number must exists and be an integer' in response.data
 
     def test_complete_post(self):
+        response = postHint(self.app, instructor_id, exercise_id, hints)
+        
         response = post(self.app, code, student_id, exercise_id, instructor_id, time_spent, hints_number)
         json_data = json.loads(response.data)
         self.assertEqual(200, response.status_code)
         self.assertEqual(student_id, json_data['student_id'])
         self.assertEqual(exercise_id, json_data['exercise_id'])
-        self.assertEqual('hints for exercise %d' % exercise_id, json_data['hints'])
+        self.assertEqual(json.dumps(hints), json.dumps(json_data['hints']))
 
 if __name__ == '__main__':
     unittest.main()
