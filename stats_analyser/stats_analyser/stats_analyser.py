@@ -2,7 +2,6 @@ import sys
 import os
 import json
 from flask import Flask, g,jsonify,request
-from flask_restful import reqparse, Api, Resource, marshal_with, fields
 import flaskext.couchdb
 from easydict import EasyDict as edict
 from config import Development, Production, Testing
@@ -19,7 +18,7 @@ config_name = os.getenv('FLASK_CONFIGURATION', 'default')
 app.config.from_object(config[config_name])
 
 #create the view for the specific instructor and specific exercise
-docs_by_exercise = flaskext.couchdb.ViewDefinition('docs','instructor_id','''\
+docs_by_exercise = flaskext.couchdb.ViewDefinition('docs','instructor_exercise_id','''\
     function(doc){
         emit([doc.instructor_id,doc.exercise_id],doc);
     }
@@ -62,21 +61,20 @@ def average(exercise_id):
     return null
 
 #return all the docs related to the instructor
-@app.route("/docs/<instructor_id>")
+@app.route("/docs/<int:instructor_id>")
 def docs(instructor_id):
   response = dict()
   response['docs'] = []
   response['exercise'] = []
   for row in docs_by_instructor(g.couch)[int(instructor_id)]:
     response['docs'].append(row.value)
-    row = edict(row.value)
-    if row.exercise_id not in response['exercise']:
-      response['exercise'].append(row.exercise_id)
+    if row.value['exercise_id'] not in response['exercise']:
+      response['exercise'].append(row.value['exercise_id'])
     response['exercise'].sort()
   return jsonify(response)
 
 #return all the docs according to the exercise_id and instructor_id
-@app.route("/newdocs/<instructor_id>/<exercise_id>")
+@app.route("/newdocs/<int:instructor_id>/<int:exercise_id>")
 def newdocs(instructor_id,exercise_id):
   mResponse = dict()
   mResponse['docs'] = []
