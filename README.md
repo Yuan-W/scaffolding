@@ -31,6 +31,12 @@ Error Responses | HTTP 401 Unauthorized, <br> HTTP 404 Not Found
 ##HintsProvider
 
 ##StatsAnalyser
+| Title | Content |
+--- |---
+URL | /docs/\<instructor_id\>
+Method Allowed | GET
+Successful Response| Code : HTTP 200 OK,<br> Content:\{all the docs related to the instructor and the exercise_id\}
+Error Response| 
 
 ##StatsUpdater
 
