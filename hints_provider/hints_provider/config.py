@@ -13,4 +13,4 @@ class Production(object):
   ADDRESS_STATS_UPDATER = 'http://localhost:5002'
   ADDRESS_TEST_RUNNER = 'http://localhost:5004'
   ADDRESS_TEST_MANAGEMENT = 'http://localhost:5003'
-  ADDRESS_HINTS_DB = 'http://admin:ANfCd8PDW8QhNAWd@10.0.1.6:5894/'
+  ADDRESS_HINTS_DB = 'http://admin:ANfCd8PDW8QhNAWd@10.0.1.6:5984/'
