@@ -6,11 +6,11 @@
 | Service | Port | Url
 --- | --- | ---
 PublicServer | 5000 | 51.140.39.195
-HintsProvider | 5001 | N/A
-StatsAnalyser | 5005 | N/A
-StatsUpdater | 5002 | N/A
-TestManagement | 5003 | 10.0.1.7
-TestRunner | 5004 | 10.0.1.7
+HintsProvider | 5001 | 10.0.1.5
+StatsAnalyser | 5005 | 10.0.1.5
+StatsUpdater | 5002 | 10.0.1.5
+TestManagement | 5003 | 10.0.1.5
+TestRunner | 5004 | 10.0.1.5
 
 
 
@@ -36,7 +36,7 @@ Error Responses | HTTP 401 Unauthorized, <br> HTTP 404 Not Found
 URL | /docs/\<instructor_id\>
 Method Allowed | GET
 Successful Response| Code : HTTP 200 OK,<br> Content:\{all the docs related to the instructor and the exercise_id\}
-Error Response| 
+Error Response | None
 
 ##StatsUpdater
 
