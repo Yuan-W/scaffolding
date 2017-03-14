@@ -16,9 +16,9 @@ TestRunner | 5004 | 10.0.1.5
 
 
 # RESTful APIs
-##PublicServer
+## PublicServer
 
-###Get all stats belongs to an instructor
+### Get all stats belongs to an instructor
 
 | Title | Content |
 --- | ---
@@ -28,17 +28,17 @@ Headers Required | access_token=\<token>,<br> Content-Type=application/json
 Successful Response | Code: HTTP 200 OK, <br>Content: {<br>time\_spent : [integer], <br>student\_id : [integer], <br>average\_time\_spent : [integer] <br>}
 Error Responses | HTTP 401 Unauthorized, <br> HTTP 404 Not Found
 
-##HintsProvider
+## HintsProvider
 
-##StatsAnalyser
+## StatsAnalyser
 | Title | Content |
 --- |---
 URL | /docs/\<instructor_id\>
 Method Allowed | GET
-Successful Response| Code : HTTP 200 OK,<br> Content:\{all the docs related to the instructor and the exercise_id\}
+Successful Response | Code : HTTP 200 OK,<br> Content: \{docs: [], exercise: [] \}
 Error Response | None
 
-##StatsUpdater
+## StatsUpdater
 
 | Title | Content |
 --- | ---
@@ -49,7 +49,7 @@ Data Params |{<br>instructor\_id : [int], <br>time\_spent : [int], <br>code : [s
 Successful Response | Code: HTTP 201 Created, <br>Content: {<br>id : [string], <br>rev : [string]<br>}
 Error Responses | HTTP 400 Bad Request
 
-##TestManagement
+## TestManagement
 
-##TestRunner
+## TestRunner
 
