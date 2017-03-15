@@ -1,7 +1,7 @@
 import os
 from json import dumps
 from datetime import datetime
-from flask import Flask, Response, request
+from flask import Flask, Response, request, render_template
 from requests import post, get
 from flaskext.mysql import MySQL
 from config import Development, Production, Testing
@@ -268,6 +268,43 @@ def forward_tests(id):
         return resp #serve it back
     else:
         return Response("No JSON received in test response payload\n", status='500')
+
+
+'''
+Front-end endpints
+TODO: get data from other services
+'''
+
+def new_student(s_id, name, exercise, time_spent):
+    return {'id':s_id, 'name':name, 'exercise':exercise, 'time_spent':time_spent}
+@app.route('/')
+def show_entries():
+    times = enumerate([100, 200, 300, 200, 100, 500])
+    students = []
+    students.append(new_student(1, 'Alice', [1,2,3,4], [300, 200, 500, 100]))
+    students.append(new_student(2, 'Bob', [1,2], [500, 100]))
+
+    exercise_ids = [e for s in students for e in s['exercise'] ]
+    exercise_ids = set(exercise_ids)
+    exercises = [{'id': e_id, 'name': 'exercise %d' % e_id} for e_id in exercise_ids]
+
+    return render_template('index.html', students=students, exercises=exercises, times=times)
+
+@app.route('/student')
+def student():
+    students_id = request.args.get('id')
+    student = {'name': 'student %s' % students_id,
+                'exercises': [{'name':'exercise 1', 'hints_number':5, 'time_spent':300},{'name':'exercise 2', 'hints_number':2, 'time_spent': 500}]}
+
+    return render_template('student.html', student=student)
+
+@app.route('/exercise')
+def exercise():
+    exercise_id = request.args.get('id')
+    exercise = {'name': 'exercise %s' % exercise_id,
+                'students': [{'name':'Alice', 'hints_number':5, 'time_spent':300},{'name':'Bob', 'hints_number':2, 'time_spent': 500}]}
+
+    return render_template('exercise.html', exercise=exercise)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=5000)
