@@ -12,7 +12,7 @@ class PublicTestCase(unittest.TestCase):
         headers['Content-Type'] = 'application/json'
         data = {"exercise_id": 16, "time_spent": 30, "code": "ABCz;)examplebla123", "hints_number": 1}
         rv = self.app.post('/hints', headers=headers, data=dumps(data))
-        rv = self.app.get('/stats', headers=headers)
+        rv = self.app.get('/docs', headers=headers)
         assert u'time_spent' in rv.data
         assert u'student_id' in rv.data
         assert rv.status_code == 200
