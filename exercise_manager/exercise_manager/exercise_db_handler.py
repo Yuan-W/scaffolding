@@ -62,27 +62,31 @@ class ExerciseDBHandler():
         design_id = '_design/hints'
         update_doc = {'name' : 'default',
                       'content':  '''function(doc, req) { 
-                                        var fields = JSON.parse(req.body)
+                                        var fields = JSON.parse(req.body);
                                         if (!doc){
                                             if ('id' in req && req['id']){
-                                                return [{'_id': req['id'], 
+                                                dic = {'_id': req['id'], 
                                                          'name': fields['name'],
                                                          'test_code': fields['test_code'],
                                                          'instructor_id': fields['instructor_id'],
                                                          'exercise_index': fields['exercise_index'],
-                                                         'hints': fields['hints']
-                                                         }, 
-                                                         toJSON({'message': 'doc created'})
-                                                        ]
+                                                         'hints': fields['hints']};
+                                                if ('description' in fields){
+                                                    dic['description'] = fields['description'];
+                                                }
+                                                if ('template' in fields){
+                                                    dic['template'] = fields['template'];
+                                                }
+                                                return [dic, toJSON({'message': 'doc created'})];
                                             }
-                                            return [null, toJSON({'message':'reuqest does not contain id'})]
+                                            return [null, toJSON({'message':'reuqest does not contain id'})];
                                         }
                                         for(var key in fields)
                                         {
-                                            doc[key] = fields[key]
+                                            doc[key] = fields[key];
                                         }
 
-                                        return [doc, toJSON({'message':'doc updated'})]
+                                        return [doc, toJSON({'message':'doc updated'})];
                                     }'''}
 
         view_data = { "_id": design_id,
