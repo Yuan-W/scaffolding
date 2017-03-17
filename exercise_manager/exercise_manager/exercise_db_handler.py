@@ -16,13 +16,24 @@ class ExerciseDBHandler():
                                     })
         return response.json(), response.status_code
 
-    def getExercise(self, doc_id):
+    def get_all(self):
+        response = requests.get('%s/%s/_all_docs?include_docs=true' % (self.db_url, self.table),
+                                    headers={'Content-Type': 'application/json'
+                                    })
+        if response.status_code != 200:
+            return response.json(), response.status_code
+
+        json_reply = response.json()['rows']
+        json_reply = [e['doc'] for e in json_reply if not e['id'].startswith('_design')]
+        return json_reply, response.status_code
+
+    def get_exercise(self, doc_id):
         response = requests.get('%s/%s/%s' % (self.db_url, self.table, doc_id),
                                     headers={'Content-Type': 'application/json'
                                     })
         return response.json(), response.status_code
 
-    def postExercise(self, instructor_id, exercise_index, name, test_code, hints):
+    def post_exercise(self, instructor_id, exercise_index, name, test_code, hints, description=None, template=None):
         data = {
                 'name':name,
                 'instructor_id': instructor_id,
@@ -30,6 +41,10 @@ class ExerciseDBHandler():
                 'test_code': test_code,
                 'hints': hints
                 }
+        if description is not None:
+            data['description'] = description
+        if template is not None:
+            data['template'] = template
         response = requests.post('%s/%s/_design/hints/_update/default/%d_%d' % (self.db_url, self.table, instructor_id, exercise_index),
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'
