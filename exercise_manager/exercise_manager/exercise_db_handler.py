@@ -1,21 +1,36 @@
 import json
 import requests
 
-class HintsDBHandler():
-    def __init__(self, db_url, table):
+class ExerciseDBHandler():
+    def __init__(self, db_url):
       self.db_url = db_url
-      self.table = table
+      self.table = 'exercise'
 
-    def getHints(self, exercise_id):
-        response = requests.get('%s/%s/%d' % (self.db_url, self.table, exercise_id),
+    def bulk_fetch(self, ids):
+        ids = [str(e) for e in ids]
+        data = {'keys':ids}
+
+        response = requests.post('%s/%s/_all_docs?include_docs=true' % (self.db_url, self.table),
+                                    data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'
                                     })
         return response.json(), response.status_code
 
-    def postHints(self, instructor_id, exercise_id, hints):
-        data = {'instructor_id': instructor_id,
-                'hints': hints}
-        response = requests.post('%s/%s/_design/hints/_update/default/%d' % (self.db_url, self.table, exercise_id),
+    def getExercise(self, doc_id):
+        response = requests.get('%s/%s/%s' % (self.db_url, self.table, doc_id),
+                                    headers={'Content-Type': 'application/json'
+                                    })
+        return response.json(), response.status_code
+
+    def postExercise(self, instructor_id, exercise_index, name, test_code, hints):
+        data = {
+                'name':name,
+                'instructor_id': instructor_id,
+                'exercise_index': exercise_index,
+                'test_code': test_code,
+                'hints': hints
+                }
+        response = requests.post('%s/%s/_design/hints/_update/default/%d_%d' % (self.db_url, self.table, instructor_id, exercise_index),
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'
                                     })
@@ -26,6 +41,9 @@ class HintsDBHandler():
         return json_resp, response.status_code
 
     def init_db(self):
+        response = requests.get('%s/%s' % (self.db_url, self.table))
+        if response.status_code == 404:
+            response = requests.put('%s/%s' % (self.db_url, self.table))
         design_id = '_design/hints'
         update_doc = {'name' : 'default',
                       'content':  '''function(doc, req) { 
@@ -33,7 +51,10 @@ class HintsDBHandler():
                                         if (!doc){
                                             if ('id' in req && req['id']){
                                                 return [{'_id': req['id'], 
-                                                         'exercise_id': fields['exercise_id'],
+                                                         'name': fields['name'],
+                                                         'test_code': fields['test_code'],
+                                                         'instructor_id': fields['instructor_id'],
+                                                         'exercise_index': fields['exercise_index'],
                                                          'hints': fields['hints']
                                                          }, 
                                                          toJSON({'message': 'doc created'})
@@ -48,23 +69,19 @@ class HintsDBHandler():
 
                                         return [doc, toJSON({'message':'doc updated'})]
                                     }'''}
-        response = requests.get('%s/%s/_design/hints' % (self.db_url, self.table),
-                                headers={'Content-Type': 'application/json'},
-                                )
-        if response.status_code == 404:
-            view_data = { "_id": design_id,
-                          "language": "javascript",
-                          "updates": 
-                          {
-                            update_doc['name']: update_doc['content']
-                          }
-                        }
-            response = requests.post('%s/%s' % (self.db_url, self.table),
-                                    headers={'Content-Type': 'application/json'},
-                                    data = json.dumps(view_data)
-                                    )
-            return response.json(), response.status_code
 
+        view_data = { "_id": design_id,
+                      "language": "javascript",
+                      "updates": 
+                      {
+                        update_doc['name']: update_doc['content']
+                      }
+                    }
+        response = requests.post('%s/%s' % (self.db_url, self.table),
+                                headers={'Content-Type': 'application/json'},
+                                data = json.dumps(view_data)
+                                )
+        return response.json(), response.status_code
 
     def delete_doc(self, doc_id, doc_rev):
         requests.delete('%s/%s/%s?rev=%s' % (self.db_url, self.table, doc_id, doc_rev),

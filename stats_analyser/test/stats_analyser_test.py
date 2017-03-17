@@ -5,7 +5,7 @@ import requests
 from ..stats_analyser import stats_analyser
 
 student_id = 3
-exercise_id = 2
+exercise_id = "2"
 instructor_id = 9
 code = "def reverse_list(l):\n\treturn l[::-1]"
 hints_number = 1
@@ -30,7 +30,7 @@ class StatsAnalyserTestCase(unittest.TestCase):
                     "test_status": test_status,
                     "time_spent": time_spent
                   }
-        response = requests.post('http://localhost:5002/stats/%d/%d' % (student_id, exercise_id), json=content)
+        response = requests.post('http://localhost:5002/stats/%d/%s' % (student_id, exercise_id), json=content)
         response = self.app.get("/docs/%d" % instructor_id)
         self.assertEqual(response.status_code, 200)
         print json.loads(response.data)
