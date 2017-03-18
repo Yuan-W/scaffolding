@@ -52,7 +52,7 @@ $app->post('/login/instructor', function (Request $request) use ($app) {
 
     if ($count == 1) {
         $app['session']->set('login_user', $user);
-        return $app->redirect('/authorize?response_type=code&client_id=testclient&state=xyz');
+        return $app->redirect('/instructor/authorize?response_type=code&client_id=testclient&state=xyz');
     } else {
         $app['session']->getFlashBag()->set('error', 'Username or Password incorrect.');
         return $app->redirect('/login/instructor');
@@ -147,6 +147,61 @@ $app->post('/register/instructor/passphrase', function (Request $request) use ($
         return $app->redirect('/register/instructor/passphrase');
     }
 });
+
+$app->get('/instructor/authorize', function (Request $request) use ($app) {
+    if (!$app['session']->has('login_user')) {
+        $app['session']->getFlashBag()->set('error', 'Not logged in.');
+        return $app->redirect('/');
+    }
+
+    $response_type = $request->get('response_type');
+    $client_id = $request->get('client_id');
+    $state = $request->get('state');
+
+    return $app['twig']->render('authorizeInstructor.twig', compact('response_type', 'client_id', 'state'));
+});
+
+$app->post('/instructor/authorize', function (Request $request) use ($app) {
+    if (!$app['session']->has('login_user')) {
+        $app['session']->getFlashBag()->set('error', 'Not logged in.');
+        return $app->redirect('/');
+    }
+    $response_type = $request->get('response_type');
+    $client_id = $request->get('client_id');
+    $state = $request->get('state');
+
+    $oauthRequest = OAuth2\Request::createFromGlobals();
+    $oauthResponse = new OAuth2\Response();
+    if (!$app['oauthServer']->validateAuthorizeRequest($oauthRequest, $oauthResponse)) {
+        $oauthResponse->send();
+    }
+
+    $userId = $app['session']->get('login_user');
+    $isAuthorized = $request->get('authorized') === 'Yes';
+    if (!$isAuthorized) {
+        $app['session']->clear();
+        $app['session']->getFlashBag()->set('error', 'Not authorized.');
+        return $app->redirect('/');
+    }
+
+    $app['oauthServer']->handleAuthorizeRequest($oauthRequest, $oauthResponse, $isAuthorized, $userId);
+    $code = substr($oauthResponse->getHttpHeader('Location'), strpos($oauthResponse->getHttpHeader('Location'), 'code=')+5, 40);
+
+    $url = '/instructor/authorize/launch?authorization_code=';
+    $url .= $code;
+    return $app->redirect($url);
+});   
+
+$app->get('/instructor/authorize/launch', function (Request $request) use ($app) {
+    if (!$app['session']->has('login_user')) {
+        $app['session']->getFlashBag()->set('error', 'Not logged in.');
+        return $app->redirect('/');
+    }
+
+    $authorization_code = $request->get('authorization_code');
+
+    return $app['twig']->render('launch.twig', compact('authorization_code'));
+}); 
 
 $app->get('/authorize', function (Request $request) use ($app) {
     if (!$app['session']->has('login_user')) {
