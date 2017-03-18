@@ -3,3 +3,4 @@
 flask==0.12
 requests
 flask-mysql
+Flask-Cache

@@ -1,9 +1,10 @@
 import os
 from json import dumps
 from datetime import datetime
-from flask import Flask, Response, request, render_template
 import requests
+from flask import Flask, Response, request, render_template, abort, session, redirect, url_for
 from flaskext.mysql import MySQL
+from flask_cache import Cache
 from config import Development, Production, Testing
 
 config = {
@@ -17,8 +18,18 @@ app = Flask(__name__)
 config_name = os.getenv('FLASK_CONFIGURATION', 'default')
 app.config.from_object(config[config_name])
 app.config.from_pyfile('../config.cfg')
+app.secret_key = 'xnKt\x0cw\xa1\xc4t\xb9\x9a\xa6\x87Q\x1d\xec\x97\x84\x9avx\xf3"\x1e'
+
+cache = Cache(app,config={'CACHE_TYPE': 'simple'})
+
 mysql = MySQL()
 mysql.init_app(app)
+
+login_address = 'http://localhost:4999/login'
+
+########################################
+# FLASK CLI Command
+########################################
 
 def init_db():
     connection = mysql.connect()
@@ -49,6 +60,10 @@ def seeddb_command():
     seed_db()
     print('Seed the database.')
 
+########################################
+# MySQL Query
+########################################
+
 def fetch_user_info(token):
     """for a given access_token returns student_id and instructor_id
     from oauth_access_tokens table in a database, unless token has expired"""
@@ -71,6 +86,43 @@ def fetch_user_info(token):
     if user_id and expires > datetime.now(): #if it was found check has it expired
         return user_id, int(instructor)
     return None
+
+def fetch_instructor_info(authorization_code):
+    connection = mysql.connect()
+    cursor = connection.cursor()
+    sql = "SELECT `expires`, `username`, `id` FROM `oauth_authorization_codes` INNER JOIN instructors on `oauth_authorization_codes`.`user_id`=`instructors`.`username` WHERE `authorization_code`=%s"
+    cursor.execute(sql, (authorization_code, ))
+    row = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    expires, name, instructor_id = row
+    if row is None:
+        return None, 'User not found'
+    if expires < datetime.now(): #if it was found check has it expired
+        return None, 'Code expired'
+    return int(instructor_id), name
+
+def fetch_students(instructor_id):
+    connection = mysql.connect()
+    cursor = connection.cursor()
+    sql = "SELECT `users`.`id`, `users`.`username` FROM `users` INNER JOIN instructors on `users`.`instructor`=`instructors`.`username` WHERE `instructors`.`id`=%s"
+    cursor.execute(sql, (instructor_id, ))
+    rows = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    students = []
+    for row in rows:
+        name = row[1].split('.')
+        first_name = name[0].title()
+        last_name = name[1].title()
+        name = '%s %s' % (first_name, last_name)
+        student = {'id':row[0], 'first_name':first_name, 'last_name':last_name, 'name':name}
+        students.append(student)
+    return students
+    
+########################################
+# APIs for VSCode
+########################################
 
 @app.route('/api/stats', methods=['GET'])
 def forward_stats():
@@ -156,141 +208,91 @@ def forward_hints():
     else:
         return Response("No JSON received in hints response payload\n", status='500')
 
-# @app.route('/docs', methods=['GET'])
-# def forward_docs():
-#     """route /docs response, looks for access_token in a header, queries
-#     the db for it, and if finds an user_id, checks token expiration.
-#     then finds instructor_id using user_id in db, forwards it
-#     through a GET to serverA's /docs/instructor_id, accepts its reply
-#     and serves it back as initial request's response"""
-#     server_docs = app.config['ADDRESS_DOCS']
-#     if 'access_token' not in request.headers:
-#         return Response("No access_token in GET header\n", status='401')
-#     access_token = request.headers['access_token'].encode('utf-8')
-#     if app.debug:
-#         print(access_token)
-#     user_id = fetch_user_id(access_token) #query db
-#     if not user_id:
-#         return Response("Wrong or expired access_token in GET header\n", status='401')
-#     instructor_id = fetch_instructor_id(user_id) #query db
-#     if not instructor_id:
-#         return Response("Inconsistent DB state, access_token doesn't provide a valid user\n", status='401')
-#     req = get(server_docs + str(instructor_id)) #forward GET
-#     if app.debug:
-#         print(req.text)
-#     resp = Response(req.text, status=req.status_code)
-#     return resp #serve it back unchecked
+########################################
+# Dashboard Backend
+########################################
 
-# @app.route('/average/<exercise_id>', methods=['GET'])
-# def forward_average(exercise_id):
-#     """route /average response, looks for access_token in a header, queries
-#     the db for it, and if finds an user_id, checks token expiration.
-#     then finds instructor_id using user_id in db, forwards request
-#     through a GET to server_average's /average/exercise_id, accepts its reply
-#     and serves it back as initial request's response"""
-#     server_average = app.config['ADDRESS_AVERAGE']
-#     if 'access_token' not in request.headers:
-#         return Response("No access_token in GET header\n", status='401')
-#     access_token = request.headers['access_token'].encode('utf-8')
-#     if app.debug:
-#         print(access_token)
-#     user_id = fetch_user_id(access_token) #query db
-#     if not user_id:
-#         return Response("Wrong or expired access_token in GET header\n", status='401')
-#     req = get(server_average + exercise_id) #forward GET
-#     if app.debug:
-#         print(req.text)
-#     if 'Content-Type' in req.headers and \
-#       req.headers['Content-Type'] == 'application/json': #check reply
-#         resp = Response(dumps(req.json()), mimetype='application/json')
-#         # resp.set_data(req.json()) #fill a response
-#         return resp #serve it back
-#     else:
-#         return Response("No JSON received in stats response\n", status='500')
+@cache.memoize(timeout=50)
+def fetch_students_and_exercises(instructor_id):
+    students = fetch_students(instructor_id)
+    docs = requests.get('%s/docs/%d' % (app.config['ADDRESS_STATS'], instructor_id))
+    exercise_ids = {}
+    exercise_ids['ids'] = docs.json()['exercise']
 
-# @app.route('/exercises/<id>/tests', methods=['GET', 'POST'])
-# def forward_tests(id):
-#     """route /exercises/<id>/tests response, looks for access_token in a header, and a json
-#     POST query. queries the db for access_token, and if finds an user_id,
-#     checks token expiration. then queries student_id/instructor_id,
-#     and if found it then forwards the POST to server_test_management, accepts its reply
-#     and serves it back as initial request's response"""
-#     server_test_management = app.config['ADDRESS_EXERCISE_MANAGER']
-#     if 'access_token' not in request.headers:
-#         return Response("No access_token in " + request.method +\
-#                         " header\n", status='401')
-#     if request.method == 'POST':                        
-#         if not 'Content-Type' in request.headers:
-#             return Response("No Content-Type set in POST header\n", status='400')
-#         if request.headers['Content-Type'] != 'application/json':
-#             return Response("Content-Type in POST header should be application/json\n",\
-#                             status='400')
-#     access_token = request.headers['access_token'].encode('utf-8')
-#     if app.debug:
-#         print(access_token)
-#     user_id = fetch_user_id(access_token) #query db
-#     if not user_id:
-#         return Response("Wrong or expired access_token in " + request.method +\
-#                         " header\n", status='401')
-#     if request.method == 'POST':
-#         student_id, instructor_id = fetch_student_ids(user_id) #query db
-#         if not student_id or not instructor_id:
-#             return Response("Inconsistent DB state, access_token doesn't provide a valid user\n", status='401')
-#         post_data = request.json
-#         if id != str(post_data['exercise_id']):
-#             return Response(str(post_data['exercise_id']) + " in POST data doesn't match " +\
-#                             id + " in URL\n", status='400')
-#         post_data['instructor'] = instructor_id
-#         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-#         req = post(server_test_management+id+'/tests', json=post_data, headers=headers) #forward POST
-#     else: # it was a GET
-#         headers = {'Accept': 'application/json'}
-#         req = get(server_test_management+id+'/tests', headers=headers) #forward GET
+    exercise_names = requests.post('%s/names' % app.config['ADDRESS_EXERCISE_MANAGER'], json=exercise_ids, headers={'Content-Type': 'application/json'})
+    exercises = exercise_names.json()
+    return students, exercises
 
-#     if 'Content-Type' in req.headers and \
-#       req.headers['Content-Type'] == 'application/json': #check reply
-#         resp = Response(dumps(req.json()), mimetype='application/json')
-#         # resp.set_data(req.json()) #fill a response
-#         return resp #serve it back
-#     else:
-#         return Response("No JSON received in test response payload\n", status='500')
+def valid_session_and_fetch_data():
+    if 'instructor_id' not in session:
+        return None, None
+    return fetch_students_and_exercises(session['instructor_id'])
 
-
-'''
-Front-end endpints
-TODO: get data from other services
-'''
-
-def new_student(s_id, name, exercise, time_spent):
-    return {'id':s_id, 'name':name, 'exercise':exercise, 'time_spent':time_spent}
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def show_entries():
-    times = enumerate([100, 200, 300, 200, 100, 500])
-    students = []
-    students.append(new_student(1, 'Alice', [1,2,3,4], [300, 200, 500, 100]))
-    students.append(new_student(2, 'Bob', [1,2], [500, 100]))
+    if request.method == 'POST':
+        if 'authorization_code' not in request.form or 'authorized' not in request.form:
+            abort(400)
+        authorization_code = request.form['authorization_code']
+        authorized = request.form['authorized']
+        if authorized != 'Yes':
+            abort(401)
+        response = fetch_instructor_info(authorization_code)
+        if(response[0] is None):
+            abort(401, response[1])
+        instructor_id, instructor_name = response
+        session['instructor_id'] = instructor_id
+        
+        students, exercises = fetch_students_and_exercises(instructor_id)
 
-    exercise_ids = [e for s in students for e in s['exercise'] ]
-    exercise_ids = set(exercise_ids)
-    exercises = [{'id': e_id, 'name': 'exercise %d' % e_id} for e_id in exercise_ids]
+        times = enumerate([100, 200, 300, 200, 100, 500])
+        return render_template('index.html', students=students, exercises=exercises, times=times)
 
-    return render_template('index.html', students=students, exercises=exercises, times=times)
+    else:
+        cache.delete_memoized(fetch_students_and_exercises)
+        students, exercises = valid_session_and_fetch_data()
+        if students is None or exercises is None:
+            return redirect(login_address)
+
+        times = enumerate([100, 200, 300, 200, 100, 500])
+        return render_template('index.html', students=students, exercises=exercises, times=times)
 
 @app.route('/student')
 def student():
-    students_id = request.args.get('id')
-    student = {'name': 'student %s' % students_id,
-                'exercises': [{'name':'exercise 1', 'hints_number':5, 'time_spent':300},{'name':'exercise 2', 'hints_number':2, 'time_spent': 500}]}
+    students, exercises = valid_session_and_fetch_data()
+    if students is None or exercises is None:
+        return redirect(login_address)
 
-    return render_template('student.html', student=student)
+    student_id = request.args.get('id')
+    print '*'*30
+    for s in students:
+        print s
+    print '*'*30
+    st = [ s for s in students if s['id'] == int(student_id) ][0]
+    student = {'name': st['name'],
+                'exercises': exercises}
+
+    return render_template('student.html', student=student, students=students, exercises=exercises)
 
 @app.route('/exercise')
 def exercise():
-    exercise_id = request.args.get('id')
-    exercise = {'name': 'exercise %s' % exercise_id,
-                'students': [{'name':'Alice', 'hints_number':5, 'time_spent':300},{'name':'Bob', 'hints_number':2, 'time_spent': 500}]}
+    students, exercises = valid_session_and_fetch_data()
+    if students is None or exercises is None:
+        return redirect(login_address)
 
-    return render_template('exercise.html', exercise=exercise)
+    exercise_id = request.args.get('id')
+    ex = [ e for e in exercises if e['id'] == exercise_id ][0]
+
+    exercise = {'name': ex['name'],
+                'students': students}
+
+    return render_template('exercise.html', exercise=exercise, students=students, exercises=exercises)
+
+@app.route('/logout')
+def logout():
+    session.pop('instructor_id', None)
+    return redirect(login_address)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=5000)
