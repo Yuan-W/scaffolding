@@ -218,9 +218,20 @@ def fetch_students_and_exercises(instructor_id):
     docs = requests.get('%s/docs/%d' % (app.config['ADDRESS_STATS'], instructor_id))
     exercise_ids = {}
     exercise_ids['ids'] = docs.json()['exercise']
-
+    exercise_stats = docs.json()['exercise_stats']
+    student_stats = docs.json()['student_stats']
     exercise_names = requests.post('%s/names' % app.config['ADDRESS_EXERCISE_MANAGER'], json=exercise_ids, headers={'Content-Type': 'application/json'})
     exercises = exercise_names.json()
+    for exercise in exercises:
+        stat = [s for s in exercise_stats if s['exercise_id'] == exercise['id']][0]
+        exercise.update(stat)
+    exercises = sorted(exercises, key=lambda k: k['name'])
+
+    for student in students:
+        stat = [s for s in student_stats if s['student_id'] == student['id']][0]
+        student.update(stat)
+    students = sorted(students, key=lambda k: k['name']) 
+
     return students, exercises
 
 def valid_session_and_fetch_data():
@@ -229,7 +240,7 @@ def valid_session_and_fetch_data():
     return fetch_students_and_exercises(session['instructor_id'])
 
 @app.route('/', methods=['GET', 'POST'])
-def show_entries():
+def dashboard_controller():
     if request.method == 'POST':
         if 'authorization_code' not in request.form or 'authorized' not in request.form:
             abort(400)
@@ -258,33 +269,40 @@ def show_entries():
         return render_template('index.html', students=students, exercises=exercises, times=times)
 
 @app.route('/student')
-def student():
+def student_controller():
     students, exercises = valid_session_and_fetch_data()
     if students is None or exercises is None:
         return redirect(login_address)
 
     student_id = request.args.get('id')
-    print '*'*30
-    for s in students:
-        print s
-    print '*'*30
-    st = [ s for s in students if s['id'] == int(student_id) ][0]
-    student = {'name': st['name'],
-                'exercises': exercises}
+    response = requests.get('%s/docs/student/%s/%s' % (app.config['ADDRESS_STATS'], session['instructor_id'] , student_id))
+    docs = response.json()['docs']
+    for doc in docs:
+        exercise_name = [s for s in exercises if s['id'] == doc['exercise_id']][0]
+        doc['name'] = exercise_name['name']
+
+    this_student = [ s for s in students if s['id'] == int(student_id) ][0]
+    student = {'name': this_student['name'],
+                'exercises': docs}
 
     return render_template('student.html', student=student, students=students, exercises=exercises)
 
 @app.route('/exercise')
-def exercise():
+def exercise_controller():
     students, exercises = valid_session_and_fetch_data()
     if students is None or exercises is None:
         return redirect(login_address)
 
     exercise_id = request.args.get('id')
-    ex = [ e for e in exercises if e['id'] == exercise_id ][0]
+    response = requests.get('%s/docs/exercise/%s/%s' % (app.config['ADDRESS_STATS'], session['instructor_id'] , exercise_id))
+    docs = response.json()['docs']
+    this_exercise = [ e for e in exercises if e['id'] == exercise_id ][0]
+    for doc in docs:
+        student_name = [s for s in students if s['id'] == doc['student_id']][0]
+        doc['name'] = student_name['name']
 
-    exercise = {'name': ex['name'],
-                'students': students}
+    exercise = {'name': this_exercise['name'],
+                'students': docs}
 
     return render_template('exercise.html', exercise=exercise, students=students, exercises=exercises)
 

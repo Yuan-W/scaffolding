@@ -69,14 +69,16 @@ $(function() {
                                 <th>Name</th>
                                 <th>Number of Students Participated</th>
                                 <th>Average Time Spent</th>
+                                <th>Average Hints Requested</th>
                             </tr>
                         </thead>
                         <tbody>
                         {% for exercise in exercises %}
                             <tr class="odd gradeX">
                                 <td class="center">{{exercise['name']}}</td>
-                                <td class="center">{{exercise['students_count']}}</td>
+                                <td class="center">{{exercise['student_count']}}</td>
                                 <td class="center">{{exercise['average_time_spent']}}</td>
+                                <td class="center">{{exercise['average_hints']}}</td>
                             </tr>
                         {% endfor %}
                         </tbody>

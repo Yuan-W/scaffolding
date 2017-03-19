@@ -123,8 +123,9 @@ def docs(instructor_id):
 
   response['docs'] = [row.value for row in rows]
 
-  response['stats'] = get_stats('exercise_id', response['docs'])
-  response['exercise'] = [ stat['exercise_id'] for stat in response['stats'] ]
+  response['exercise_stats'] = get_stats('exercise_id', response['docs'])
+  response['student_stats'] = get_stats('student_id', response['docs'])
+  response['exercise'] = [ stat['exercise_id'] for stat in response['exercise_stats'] ]
   
   return jsonify(response)
 
@@ -135,7 +136,8 @@ def docs_exercise(instructor_id,exercise_id):
   mResponse['docs'] = []
   for row in docs_by_instructor_exercise(g.couch)[instructor_id,exercise_id]:
     mResponse['docs'].append(row.value)
-  mResponse['stats'] = get_stats('exercise_id', mResponse['docs'])
+  # mResponse['student_stats'] = get_stats('student_id', mResponse['docs'])
+  # mResponse['exercise_stats'] = get_stats('exercise_id', mResponse['docs'])
   return jsonify(mResponse)
 
 @app.route("/docs/student/<int:instructor_id>/<int:student_id>", methods=['GET'])
@@ -144,7 +146,8 @@ def docs_student(instructor_id,student_id):
   mResponse['docs'] = []
   for row in docs_by_instructor_student(g.couch)[instructor_id,student_id]:
     mResponse['docs'].append(row.value)
-  mResponse['stats'] = get_stats('student_id', mResponse['docs'])
+  # mResponse['student_stats'] = get_stats('student_id', mResponse['docs'])
+  # mResponse['exercise_stats'] = get_stats('exercise_id', mResponse['docs'])
   return jsonify(mResponse)
 
 if __name__ == '__main__':
