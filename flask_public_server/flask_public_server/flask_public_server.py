@@ -25,7 +25,7 @@ cache = Cache(app,config={'CACHE_TYPE': 'simple'})
 mysql = MySQL()
 mysql.init_app(app)
 
-login_address = 'http://localhost:4999/login'
+login_address = app.config['ADDRESS_LOGIN']
 
 ########################################
 # FLASK CLI Command
@@ -161,6 +161,38 @@ def forward_stats():
     else:
         return Response("No JSON received in stats response\n", status='500')
 
+@app.route('/api/exercises', methods=['GET'])
+def forward_exercises():
+    if 'access_token' not in request.headers:
+        return Response("No access_token in GET header\n", status='401')
+    access_token = request.headers['access_token'].encode('utf-8')
+
+    if app.debug:
+        print(access_token)
+
+    row = fetch_user_info(access_token) #query db
+
+    if not row:
+        return Response("Wrong or expired access_token in GET header\n", status='401')
+
+    student_id, instructor_id = row
+    
+    if not instructor_id or not student_id:
+        return Response("Inconsistent DB state, access_token doesn't provide a valid user\n", status='401')
+
+    server_exercise = app.config['ADDRESS_EXERCISE_MANAGER']
+
+    req = requests.get('%s/exercises' % server_exercise)
+
+    if app.debug:
+        print(req.text)
+    if 'Content-Type' in req.headers:
+        resp = Response(dumps(req.json()), mimetype='application/json')
+        #resp.set_data(req.json()) #fill a response
+        return resp #serve it back
+    else:
+        return Response("No JSON received in stats response\n", status='500')
+
 @app.route('/api/hints', methods=['POST'])
 def forward_hints():
     """route /hints response, looks for access_token in a header, and a json
@@ -239,7 +271,7 @@ def valid_session_and_fetch_data():
         return None, None
     return fetch_students_and_exercises(session['instructor_id'])
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard_controller():
     if request.method == 'POST':
         if 'authorization_code' not in request.form or 'authorized' not in request.form:
@@ -256,7 +288,7 @@ def dashboard_controller():
         
         students, exercises = fetch_students_and_exercises(instructor_id)
 
-        times = enumerate([100, 200, 300, 200, 100, 500])
+        times = [['Exercise 1', 100], ['Exercise 2', 200], ['Exercise 3', 300], ['Exercise 4', 200]]
         return render_template('index.html', students=students, exercises=exercises, times=times)
 
     else:
@@ -265,10 +297,10 @@ def dashboard_controller():
         if students is None or exercises is None:
             return redirect(login_address)
 
-        times = enumerate([100, 200, 300, 200, 100, 500])
+        times = [['Exercise 1', 100], ['Exercise 2', 200], ['Exercise 3', 300], ['Exercise 4', 200]]
         return render_template('index.html', students=students, exercises=exercises, times=times)
 
-@app.route('/student')
+@app.route('/dashboard/student')
 def student_controller():
     students, exercises = valid_session_and_fetch_data()
     if students is None or exercises is None:
@@ -287,7 +319,7 @@ def student_controller():
 
     return render_template('student.html', student=student, students=students, exercises=exercises)
 
-@app.route('/exercise')
+@app.route('/dashboard/exercise')
 def exercise_controller():
     students, exercises = valid_session_and_fetch_data()
     if students is None or exercises is None:
@@ -306,7 +338,7 @@ def exercise_controller():
 
     return render_template('exercise.html', exercise=exercise, students=students, exercises=exercises)
 
-@app.route('/logout')
+@app.route('/dashboard/logout')
 def logout():
     session.pop('instructor_id', None)
     return redirect(login_address)

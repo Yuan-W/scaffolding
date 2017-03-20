@@ -9,6 +9,7 @@ class Development(object):
   ADDRESS_HINTS = 'http://localhost:5001/hints'
   ADDRESS_EXERCISE_MANAGER = 'http://localhost:5003'
   # ADDRESS_AVERAGE = 'http://localhost:5005/average/'
+  ADDRESS_LOGIN = 'http://127.0.0.1:4999/login'
 
 class Testing(Development):
   TESTING = True
@@ -26,4 +27,5 @@ class Production(object):
   ADDRESS_STATS = 'http://10.0.1.5:5005'
   ADDRESS_HINTS= 'http://10.0.1.5:5001/hints'
   ADDRESS_EXERCISE_MANAGER= 'http://10.0.1.5:5003'
+  ADDRESS_LOGIN = 'https://scaffolding.ml/'
 

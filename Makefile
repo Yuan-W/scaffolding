@@ -22,6 +22,12 @@ shutdown_gunicorn:
 	ps -ef | grep "exercise_manager:app" | grep -v grep | awk '{print $$2}' | xargs kill
 	ps -ef | grep "app.js" | grep -v grep | awk '{print $$2}' | xargs kill
 
+gunicorn_public:
+	gunicorn flask_public_server:app -b :5000 --chdir flask_public_server/flask_public_server/
+
+shutdown_gunicorn_public:
+	ps -ef | grep "flask_public_server:app" | grep -v grep | awk '{print $$2}' | xargs kill
+
 shutdown_public:
 	ps -ef | grep "flask_public_server/flask_public_server/flask_public_server.py" | grep -v grep | awk '{print $$2}' | xargs kill -9
 
@@ -35,3 +41,5 @@ shutdown_private:
 launch: launch_public launch_private;
 
 shutdown: shutdown_public shutdown_private;
+
+

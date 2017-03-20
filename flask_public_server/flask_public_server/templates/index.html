@@ -31,7 +31,7 @@ $(function() {
     };
     var barData = {
         label: "bar",
-        data: [{% for i, time in times %}
+        ticks: [{% for i, time in times %}
                     {{ [i,time] }},
                     {% endfor %}
                     ],
@@ -40,7 +40,7 @@ $(function() {
                 barWidth: 0.3
             }
     };
-    $.plot($("#flot-bar-chart"), [barData, lineData], barOptions);
+    $.plot($("#flot-bar-chart"), [barData], barOptions);
 
 });
 </script>

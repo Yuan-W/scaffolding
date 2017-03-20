@@ -74,14 +74,14 @@
                 <div class="sidebar-nav navbar-collapse">
                     <ul class="nav" id="side-menu">
                         <li>
-                            <a href="/"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                            <a href="/dashboard"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                         </li>
                         <li>
                             <a href="#"><i class="fa fa-edit fa-fw"></i> Exercise<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 {% for exercise in exercises %}
                                     <li>
-                                        <a href="/exercise?id={{exercise['id']}}">{{ exercise['name'] }}</a>
+                                        <a href="/dashboard/exercise?id={{exercise['id']}}">{{ exercise['name'] }}</a>
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -92,7 +92,7 @@
                             <ul class="nav nav-second-level">
                                 {% for student in students %}
                                     <li>
-                                        <a href="/student?id={{student['id']}}">{{ student['name'] }}</a>
+                                        <a href="/dashboard/student?id={{student['id']}}">{{ student['name'] }}</a>
                                     </li>
                                 {% endfor %}
                             </ul>

@@ -1,6 +1,6 @@
 import unittest
 import requests
-from json import dumps
+import json
 from ..flask_public_server import flask_public_server
 
 class PublicTestCase(unittest.TestCase):
@@ -29,7 +29,7 @@ class PublicTestCase(unittest.TestCase):
         self.post_exercise(1234, 16)
 
         data = {"exercise_id": "1234_16", "time_spent": 30, "code": "ABCz;)examplebla123", "hints_number": 1}
-        rv = self.app.post('/hints', headers=headers, data=dumps(data))
+        rv = self.app.post('/hints', headers=headers, data=json.dumps(data))
         rv = self.app.get('/api/stats', headers=headers)
         assert u'time_spent' in rv.data
         assert u'student_id' in rv.data
@@ -52,7 +52,7 @@ class PublicTestCase(unittest.TestCase):
         headers = {'access_token': '7f05ad622a3d32a5a81aee5d73a5826adb8cbf64'}
         headers['Content-Type'] = 'application/json'
         data = {"exercise_id": "1234_16", "time_spent": 30, "code": "ABCz;)examplebla123", "hints_number": 1}
-        rv = self.app.post('/api/hints', headers=headers, data=dumps(data))
+        rv = self.app.post('/api/hints', headers=headers, data=json.dumps(data))
         assert u'student_id' in rv.data
         assert u'exercise_id' in rv.data
         assert u'hints' in rv.data
@@ -63,7 +63,7 @@ class PublicTestCase(unittest.TestCase):
         headers = {'token': '7f05ad622a3d32a5a81aee5d73a5826adb8cbf64'}
         headers['Content-Type'] = 'application/json'
         data = {"exercise_id": "1234_16", "time_spent": 30, "code": "ABCz;)examplebla123"}
-        rv = self.app.post('/api/hints', headers=headers, data=dumps(data))
+        rv = self.app.post('/api/hints', headers=headers, data=json.dumps(data))
         assert u'No access_token in POST header' in rv.data
         assert rv.status_code == 401
 
@@ -71,7 +71,7 @@ class PublicTestCase(unittest.TestCase):
         headers = {'access_token': '7f05ad622a3d32a5a81aee5d73a5826adb8cbf64'}
         headers['Content'] = 'application/json'
         data = {"exercise_id": "1234_16", "time_spent": 30, "code": "ABCz;)examplebla123"}
-        rv = self.app.post('/api/hints', headers=headers, data=dumps(data))
+        rv = self.app.post('/api/hints', headers=headers, data=json.dumps(data))
         assert u'Content-Type in POST header should be application/json' in rv.data
         assert rv.status_code == 400
                 
@@ -79,9 +79,20 @@ class PublicTestCase(unittest.TestCase):
         headers = {'access_token': '5f05ad622a3d32a5a81aee5d73a5826adb8cbf64'}
         headers['Content-Type'] = 'application/json'
         data = {"exercise_id": "1234_16", "time_spent": 30, "code": "ABCz;)examplebla123"}
-        rv = self.app.post('/api/hints', headers=headers, data=dumps(data))
+        rv = self.app.post('/api/hints', headers=headers, data=json.dumps(data))
         assert u'Wrong or expired access_token in GET header' in rv.data
         assert rv.status_code == 401
+
+    def test_exercise_using_token(self):
+        headers = {'access_token': '7f05ad622a3d32a5a81aee5d73a5826adb8cbf64'}
+        headers['Content-Type'] = 'application/json'
+        self.post_exercise(1234, 16)
+
+        rv = self.app.get('/api/exercises', headers=headers)
+        json_data = json.loads(rv.data)[0]
+        assert 'id' in json_data
+        assert 'name' in json_data
+        assert rv.status_code == 200
         
 if __name__ == '__main__':
     unittest.main()

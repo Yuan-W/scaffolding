@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route('/login' , methods=['GET' , 'POST'])
 def login():
 	if request.method == 'POST':
-		return redirect('http://127.0.0.1:5000', code=307)
+		return redirect('http://127.0.0.1:5000/dashboard', code=307)
 	else:
 		return Response('''
         <form action="" method="post">
