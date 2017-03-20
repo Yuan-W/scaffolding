@@ -15,16 +15,16 @@ export function requestHintFlow(vscode, state: ApplicationState) {
 
     const payload = {
         headers: {
-            access_token
+            access_token,
+            'Content-Type': 'application/json'
         },
         data: {
             code: JSON.stringify(code).slice(1, -1),
             time_spent: timeSpent,
             exercise_id: exerciseId,
-            student_id: studentId,
             hints_number
         }
-    }
+    };
 
     return fetchHints(payload)
         .then((data) => {
