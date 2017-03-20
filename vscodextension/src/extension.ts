@@ -6,7 +6,8 @@ import { documentTextChangeHandler, debounce } from './actions';
 import {
     loginFlow,
     createAccountFlow,
-    requestHintFlow
+    requestHintFlow,
+    selectExerciseFlow
 } from './flows';
 
 process.on('unhandledRejection', function(reason, p){
@@ -27,6 +28,9 @@ export function activate(context: vscode.ExtensionContext) {
                         return loginFlow(vscode, state);
                     }
                     return createAccountFlow(vscode);
+                })
+                .then( () => {
+                    selectExerciseFlow(vscode, state);
                 });
         }
         vscode.window.showInformationMessage('Start Coding, you can request a hint any time');

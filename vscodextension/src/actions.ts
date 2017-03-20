@@ -2,7 +2,8 @@ import axios from 'axios';
 import {
     LOGIN_API_URL,
     AUTHORIZE_TOKEN_URL,
-    HINTS_URL
+    HINTS_URL,
+    EXERCISES_URL
 } from './constants';
 import ApplicationState from './ApplicationState';
 
@@ -22,7 +23,14 @@ export function showHint(vscode, message) {
 }
 
 export function showLoginSuccess(vscode) {
-    return vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
+    return vscode.window.showInformationMessage('You\'ve logged in successfully');
+}
+
+export function showExerciseSelect(vscode, exercises) {
+    return vscode.window.showQuickPick(
+        exercises,
+        { placeHolder: 'Select an exercise' }
+    );
 }
 
 export function documentTextChangeHandler(state: ApplicationState) {
@@ -36,8 +44,8 @@ export function documentTextChangeHandler(state: ApplicationState) {
 export function sendCodeChanges(payload) {
     return axios.post(HINTS_URL, payload)
         .then(
-            ({ data }) => data,
-            (err) => console.error(err)
+        ({ data }) => data,
+        (err) => console.error(err)
         );
 }
 
@@ -48,9 +56,15 @@ export function fetchToken(token) {
     );
 }
 
-export function fetchAuthorizationCode(username, password, clientId='testclient') {
+export function fetchAuthorizationCode(username, password, clientId = 'testclient') {
     return axios.post(
         LOGIN_API_URL,
         `username=${username}&password=${password}&client_id=${clientId}&response_type=code&state=xyz`
     );
+}
+
+export function fetchExercises() {
+    return new Promise((resolve) => {
+        resolve([1, 2, 3].map(String));
+    });
 }

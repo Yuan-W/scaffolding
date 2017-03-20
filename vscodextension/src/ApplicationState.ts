@@ -23,5 +23,8 @@ class ApplicationState {
     setCode(code) {
         this.code = code;
     }
+    setExercise(exerciseId) {
+        this.exerciseId = exerciseId;
+    }
 }
 export default ApplicationState;
