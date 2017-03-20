@@ -14,34 +14,100 @@ $(function() {
 
     var lineData = {
         label: "average",
-        data: [[0, 233], [6, 233]],
+        data: [[0, 233], [5, 233]],
         lines: {
                     show: true,
                     lineWidth: 1
                 }
     };
 
-    var barOptions = {
-        grid: {
-            hoverable: true
-        },
-        legend: {
-            show: false
-        }
-    };
     var barData = {
-        label: "bar",
-        ticks: [{% for i, time in times %}
-                    {{ [i,time] }},
+        label: "Exercise Time",
+        data: [{% for i, time in times %}
+                    {{ [i*10,time] }},
                     {% endfor %}
                     ],
         bars: {
+                align:"center",
                 show: true,
-                barWidth: 0.3
-            }
+                barWidth: 5,
+                fill:true,
+                lineWidth:0,
+                order:1,
+                fillColor:{
+                    colors:["#80C3FD","#0089FF"]
+                }    
+            },
+        color:"#0089FF"
     };
-    $.plot($("#flot-bar-chart"), [barData], barOptions);
 
+    var p = $.plot($("#flot-bar-chart"), [barData, lineData], {
+        xaixs:{
+            tickLength: 0, // hide gridlines
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelFontFamily: 'Verdana, Arial, Helvetica, Tahoma, sans-serif',
+            axisLabelPadding: 100,
+            ticks:[[0,'Takaoma'],[10,'Giacompany'],[20,'FreshFields'],[30,'Generalisimo'],[40, 'Greenleaves'],[50,'new']]
+        },
+        yaxis:{
+            axisLabel: 's',
+            axisLabelUseCanvas: true,
+            axisLabelFontSizePixels: 12,
+            axisLabelFontFamily: 'Verdana, Arial, Helvetica, Tahoma, sans-serif',
+            axisLabelPadding: 5,
+            tickSize: 100,
+            tickFormatter: function (val, axis) {
+                return val;
+            },
+        },
+        grid: {
+            hoverable: true,
+            clickable: false,
+            borderWidth: 0,
+            borderColor:'#f0f0f0',
+            labelMargin:8,
+        },
+        series: {
+            shadowSize: 1,
+        },
+        tooltip:true,
+        tooltipOpts: {
+            id:"chart-tooltip",
+            content: "<p><b>20</b> Outgoing Filings</p>" +
+                 "<p>Out of <b>10</b> committed;</p>" +
+                "<br />" +
+                "<p><b>30%</b>% Ratio</p>",
+            shifts: {
+                x:-74,
+                y:-125
+            },
+            lines:{
+                track: true
+            },
+            compat: true,
+        },
+    });
+
+    $.each(p.getData()[0].data, function(i, el){
+    var o = p.pointOffset({x: el[0], y: el[1]});
+    $('<div class="data-point-label">' + el[1] + '</div>').css({
+        position: 'absolute',
+        left: o.left-10,
+        top: o.top - 15,
+        display: 'none'
+    }).appendTo(p.getPlaceholder()).fadeIn('slow');
+    });
+
+    $.each(p.getData()[1].data, function(i, el){
+    var o = p.pointOffset({x: el[0], y: el[1]});
+    $('<div class="data-point-label">' + el[1] + '</div>').css({
+        position: 'absolute',
+        left: o.left-10,
+        top: o.top - 15,
+        display: 'none'
+    }).appendTo(p.getPlaceholder()).fadeIn('slow');
+    });
 });
 </script>
 {% endblock %}
