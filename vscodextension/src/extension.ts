@@ -29,11 +29,17 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                     return createAccountFlow(vscode);
                 })
-                .then( () => {
-                    selectExerciseFlow(vscode, state);
+                .then(() => {
+                    return selectExerciseFlow(vscode, state);
+                })
+                .then(() => {
+                    vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
                 });
         }
-        vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
+        return selectExerciseFlow(vscode, state)
+            .then( () => {
+                vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
+            });
     });
 
     let requestHint = vscode.commands.registerCommand('extension.requestHint', () => {

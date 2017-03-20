@@ -13,7 +13,7 @@ suite('Login Flow Tests', () => {
         let vscode, state, steps;
 
         let getUsernameStub, addPasswordStub, addConfirmationStub, checkConfirmationStub,
-        getAuthorizationCodeStub, getDataStub, getRawTokensStub, selectTokensStub,
+        getAuthorizationCodeStub, getRawTokensStub, selectTokensStub,
         commitTokensStub;
 
         setup(() => {
@@ -34,7 +34,6 @@ suite('Login Flow Tests', () => {
             addConfirmationStub = sinon.stub(steps, 'addConfirmation').returnsPromise();
             checkConfirmationStub = sinon.stub(steps, 'checkConfirmation').returnsPromise();
             getAuthorizationCodeStub = sinon.stub(steps, 'getAuthorizationCode').returnsPromise();
-            getDataStub = sinon.stub(steps, 'getData').returnsPromise();
             getRawTokensStub = sinon.stub(steps, 'getRawTokens').returnsPromise();
             selectTokensStub = sinon.stub(steps, 'selectTokens').returnsPromise();
             commitTokensStub = sinon.stub(steps, 'commitTokens').returnsPromise();
@@ -80,24 +79,12 @@ suite('Login Flow Tests', () => {
             expect(getAuthorizationCodeStub.calledOnce).to.equal(true);
         });
 
-        test('should call steps.getData', () => {
-            steps.getUsername.resolves();
-            steps.addPassword.resolves();
-            steps.addConfirmation.resolves();
-            steps.checkConfirmation.resolves();
-            steps.getAuthorizationCode.resolves();
-            loginFlow(vscode, state, steps);
-            expect(getDataStub.called).to.equal(true);
-            expect(getDataStub.calledOnce).to.equal(true);
-        });
-
         test('should call steps.getRawTokens', () => {
             steps.getUsername.resolves();
             steps.addPassword.resolves();
             steps.addConfirmation.resolves();
             steps.checkConfirmation.resolves();
             steps.getAuthorizationCode.resolves();
-            steps.getData.resolves();
             loginFlow(vscode, state, steps);
             expect(getRawTokensStub.called).to.equal(true);
             expect(getRawTokensStub.calledOnce).to.equal(true);
@@ -109,7 +96,6 @@ suite('Login Flow Tests', () => {
             steps.addConfirmation.resolves();
             steps.checkConfirmation.resolves();
             steps.getAuthorizationCode.resolves();
-            steps.getData.resolves();
             steps.getRawTokens.resolves();
             loginFlow(vscode, state, steps);
             expect(selectTokensStub.called).to.equal(true);
@@ -122,7 +108,6 @@ suite('Login Flow Tests', () => {
             steps.addConfirmation.resolves();
             steps.checkConfirmation.resolves();
             steps.getAuthorizationCode.resolves();
-            steps.getData.resolves();
             steps.getRawTokens.resolves();
             steps.selectTokens.resolves()
             loginFlow(vscode, state, steps);

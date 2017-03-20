@@ -4,8 +4,8 @@ import {
     AUTHORIZE_TOKEN_URL,
     HINTS_URL,
     EXERCISES_URL
-} from './constants';
-import ApplicationState from './ApplicationState';
+} from '../constants';
+import ApplicationState from '../ApplicationState';
 
 export function debounce(fn, delay) {
     var timer = null;
@@ -26,9 +26,11 @@ export function showLoginSuccess(vscode) {
     return vscode.window.showInformationMessage('You\'ve logged in successfully');
 }
 
-export function showExerciseSelect(vscode, exercises) {
+export function showExerciseSelect(vscode, exercises = []) {
     return vscode.window.showQuickPick(
-        exercises,
+        exercises.map(({ id, name }) => {
+            return { label: id, description: name };
+        }),
         { placeHolder: 'Select an exercise' }
     );
 }
@@ -41,11 +43,18 @@ export function documentTextChangeHandler(state: ApplicationState) {
     };
 }
 
-export function sendCodeChanges(payload) {
-    return axios.post(HINTS_URL, payload)
+function handleError(err) {
+    console.log(err);
+}
+
+export function fetchHints(payload) {
+    const { headers, data } = payload;
+    return axios.post(HINTS_URL, data, { headers })
         .then(
-        ({ data }) => data,
-        (err) => console.error(err)
+            ({ data }) => {
+                return data;
+            },
+            handleError
         );
 }
 
@@ -53,6 +62,11 @@ export function fetchToken(token) {
     return axios.post(
         AUTHORIZE_TOKEN_URL,
         `grant_type=authorization_code&code=${token}`
+    ).then(
+        ({data}) => {
+            return data;
+        },
+        handleError
     );
 }
 
@@ -60,11 +74,25 @@ export function fetchAuthorizationCode(username, password, clientId = 'testclien
     return axios.post(
         LOGIN_API_URL,
         `username=${username}&password=${password}&client_id=${clientId}&response_type=code&state=xyz`
+    ).then(
+        ({data}) => {
+            return data;
+        },
+        handleError
     );
 }
 
-export function fetchExercises() {
-    return new Promise((resolve) => {
-        resolve([1, 2, 3].map(String));
-    });
+export function fetchExercises(access_token) {
+    const config = {
+        headers: {
+            access_token
+        }
+    };
+    return axios.get(EXERCISES_URL, config)
+        .then(
+            ({ data }) => {
+                return data;
+            },
+            handleError
+        );
 }

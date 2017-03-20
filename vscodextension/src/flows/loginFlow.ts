@@ -10,9 +10,7 @@ export default function loginFlow(
         .then(steps.addConfirmation)
         .then(steps.checkConfirmation)
         .then(steps.getAuthorizationCode)
-        .then(steps.getData)
         .then(steps.getRawTokens)
-        .then(steps.getData)
         .then(steps.selectTokens)
         .then(steps.commitTokens);
 }

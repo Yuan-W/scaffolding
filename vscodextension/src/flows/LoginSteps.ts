@@ -45,9 +45,6 @@ class LoginSteps {
     getAuthorizationCode([username, password]) {
         return fetchAuthorizationCode(username, password, clientId);
     }
-    getData({ data }) {
-        return data;
-    }
     getRawTokens(authorizationCode) {
         return fetchToken(authorizationCode);
     }

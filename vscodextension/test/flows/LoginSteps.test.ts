@@ -104,12 +104,6 @@ suite('LoginSteps Tests', () => {
 
     });
 
-    suite('getData', () => {
-        test('should return props.data if passed props', () => {
-            expect(loginSteps.getData({ data: 1 })).to.equal(1);
-        });
-    });
-
     suite('getRawTokens', () => {
         test('should return a Promise', () => {
             expect(loginSteps.getRawTokens('code')).to.be.a('Promise');
