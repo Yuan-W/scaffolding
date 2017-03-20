@@ -21,7 +21,7 @@
     <link href="{{ url_for('static', filename='vendor/datatables-responsive/dataTables.responsive.css') }}" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="{{ url_for('static', filename='dist/css/sb-admin-2.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/sb-admin-2/css/sb-admin-2.css') }}" rel="stylesheet">
 
     <!-- Custom Fonts -->
     <link href="{{ url_for('static', filename='vendor/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css">
@@ -29,7 +29,7 @@
     <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/metisMenu/metisMenu.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='dist/js/sb-admin-2.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/sb-admin-2/js/sb-admin-2.js') }}"></script>
     {% block script %}{% endblock %}
 </head>
 
@@ -84,6 +84,9 @@
                                         <a href="/dashboard/exercise?id={{exercise['id']}}">{{ exercise['name'] }}</a>
                                     </li>
                                 {% endfor %}
+                                <li>
+                                    <a href="/dashboard/exercise/new">Create New Exercise</a>
+                                </li>
                             </ul>
                             <!-- /.nav-second-level -->
                         </li>

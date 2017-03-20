@@ -39,6 +39,25 @@ def get_all_exercises():
 
     return jsonify(json_response)
 
+@app.route('/exercises/<int:instructor_id>', methods=['GET'])
+def get_all_exercises_for_instructor(instructor_id):
+    response = exercise_handler.get_all()
+    if response[1] != 200:
+        return response[0], response[1]
+
+    exercises = response[0]
+    json_response = []
+    for exercise in exercises:
+        if(exercise['instructor_id'] == instructor_id):
+            ex_json = {'id':exercise['_id'],'name':exercise['name']}
+            if 'description' in exercise:
+                ex_json['description'] = exercise['description']
+            if 'template' in exercise:
+                ex_json['template'] = exercise['template']
+            json_response.append(ex_json)
+
+    return jsonify(json_response)
+
 @app.route('/exercise/<doc_id>', methods=['GET'])
 def get_exercise(doc_id):
     doc_id = doc_id

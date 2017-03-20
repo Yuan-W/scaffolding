@@ -23,7 +23,7 @@ shutdown_gunicorn:
 	ps -ef | grep "app.js" | grep -v grep | awk '{print $$2}' | xargs kill
 
 gunicorn_public:
-	gunicorn flask_public_server:app -b :5000 --chdir flask_public_server/flask_public_server/
+	gunicorn flask_public_server:app --access-logfile gunicorn-access.log  --error-logfile gunicorn-error.log -b :5000 --chdir flask_public_server/flask_public_server/ &
 
 shutdown_gunicorn_public:
 	ps -ef | grep "flask_public_server:app" | grep -v grep | awk '{print $$2}' | xargs kill

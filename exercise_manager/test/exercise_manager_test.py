@@ -107,5 +107,14 @@ class TestManagementTestCase(unittest.TestCase):
         # self.assertEqual(json_data[1]['id'], ids[1])
         # self.assertEqual(json_data[1]['name'], exercise_name_2)
 
+    def test_get_all_for_instructor(self):
+        response = post(self.app, exercise_index, instructor_id, exercise_name, test_code, hints)
+        response = post(self.app, exercise_index_2, instructor_id, exercise_name_2, test_code, hints)
+
+        response = self.app.get('/exercises/%d' % instructor_id ,content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        json_data = json.loads(response.data)
+        self.assertEqual(len(json_data) >= 2, True)
+
 if __name__ == '__main__':
     unittest.main()

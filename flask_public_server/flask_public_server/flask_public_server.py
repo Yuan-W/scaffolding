@@ -26,6 +26,7 @@ mysql = MySQL()
 mysql.init_app(app)
 
 login_address = app.config['ADDRESS_LOGIN']
+server_exercise = app.config['ADDRESS_EXERCISE_MANAGER']
 
 ########################################
 # FLASK CLI Command
@@ -87,7 +88,7 @@ def fetch_user_info(token):
     except ValueError:
         sql = "SELECT `instructors`.`id` FROM `oauth_access_tokens` INNER JOIN users on `oauth_access_tokens`.`user_id`=`users`.`username` INNER JOIN instructors on `users`.`instructor`=`instructors`.`username` WHERE `access_token`=%s"
         cursor.execute(sql, (token, ))
-        instructor = cursor.fetchone()
+        instructor = cursor.fetchone()[0]
 
     cursor.close()
     connection.close()
@@ -189,8 +190,6 @@ def forward_exercises():
     if not instructor_id or not student_id:
         return Response("Inconsistent DB state, access_token doesn't provide a valid user\n", status='401')
 
-    server_exercise = app.config['ADDRESS_EXERCISE_MANAGER']
-
     req = requests.get('%s/exercises' % server_exercise)
 
     if app.debug:
@@ -257,15 +256,18 @@ def forward_hints():
 def fetch_students_and_exercises(instructor_id):
     students = fetch_students(instructor_id)
     docs = requests.get('%s/docs/%d' % (app.config['ADDRESS_STATS'], instructor_id))
-    exercise_ids = {}
-    exercise_ids['ids'] = docs.json()['exercise']
     exercise_stats = docs.json()['exercise_stats']
     student_stats = docs.json()['student_stats']
-    exercise_names = requests.post('%s/names' % app.config['ADDRESS_EXERCISE_MANAGER'], json=exercise_ids, headers={'Content-Type': 'application/json'})
+    exercise_names = requests.get('%s/exercises/%d' % (app.config['ADDRESS_EXERCISE_MANAGER'], instructor_id), headers={'Content-Type': 'application/json'})
     exercises = exercise_names.json()
     for exercise in exercises:
-        stat = [s for s in exercise_stats if s['exercise_id'] == exercise['id']][0]
-        exercise.update(stat)
+        stat = [s for s in exercise_stats if s['exercise_id'] == exercise['id']]
+        if stat:
+            exercise.update(stat[0])
+        else:
+            exercise['average_hints'] = 0
+            exercise['average_time_spent'] = 0
+            exercise['student_count'] = 0
     exercises = sorted(exercises, key=lambda k: k['name'])
 
     for student in students:
@@ -297,8 +299,7 @@ def dashboard_controller():
         
         students, exercises = fetch_students_and_exercises(instructor_id)
 
-        times = [['Exercise 1', 100], ['Exercise 2', 200], ['Exercise 3', 300], ['Exercise 4', 200]]
-        return render_template('index.html', students=students, exercises=exercises, times=times)
+        return render_template('index.html', students=students, exercises=exercises)
 
     else:
         cache.delete_memoized(fetch_students_and_exercises)
@@ -306,10 +307,10 @@ def dashboard_controller():
         if students is None or exercises is None:
             return redirect(login_address)
 
-        times = [['Exercise 1', 100], ['Exercise 2', 200], ['Exercise 3', 300], ['Exercise 4', 200]]
-        return render_template('index.html', students=students, exercises=exercises, times=times)
+        exercise_names = [str(e['name']) for e in exercises]
+        return render_template('index.html', students=students, exercises=exercises, exercise_names=exercise_names)
 
-@app.route('/dashboard/student')
+@app.route('/dashboard/student', methods=['GET'])
 def student_controller():
     students, exercises = valid_session_and_fetch_data()
     if students is None or exercises is None:
@@ -328,7 +329,7 @@ def student_controller():
 
     return render_template('student.html', student=student, students=students, exercises=exercises)
 
-@app.route('/dashboard/exercise')
+@app.route('/dashboard/exercise', methods=['GET'])
 def exercise_controller():
     students, exercises = valid_session_and_fetch_data()
     if students is None or exercises is None:
@@ -346,6 +347,26 @@ def exercise_controller():
                 'students': docs}
 
     return render_template('exercise.html', exercise=exercise, students=students, exercises=exercises)
+
+@app.route('/dashboard/exercise/new', methods=['GET','POST'])
+def new_exercise():
+    students, exercises = valid_session_and_fetch_data()
+    if students is None or exercises is None:
+        return redirect(login_address)
+    if request.method == 'POST':
+        form_data = request.form
+        json_data = {'name': form_data['name'], 'description': form_data['description'], 
+            'test_code': form_data['test_code'], 'hints': 'hints'}
+        if form_data['template'] != '':
+            json_data['template'] = form_data['template']
+
+        exercise_index = len(exercises) + 1
+        response = requests.post('%s/exercise/%s/%s' % (server_exercise, session['instructor_id'], exercise_index), 
+                        json=json_data, headers={'Content-Type': 'application/json'
+                        })
+        return redirect(url_for('dashboard_controller'))
+    else:
+        return render_template('new_exercise.html', students=students, exercises=exercises)
 
 @app.route('/dashboard/logout')
 def logout():
