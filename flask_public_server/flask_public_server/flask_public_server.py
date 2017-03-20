@@ -299,7 +299,9 @@ def dashboard_controller():
         
         students, exercises = fetch_students_and_exercises(instructor_id)
 
-        return render_template('index.html', students=students, exercises=exercises)
+        exercise_names = [str(e['name']) for e in exercises]
+
+        return render_template('index.html', students=students, exercises=exercises, exercise_names=exercise_names)
 
     else:
         cache.delete_memoized(fetch_students_and_exercises)
@@ -308,6 +310,7 @@ def dashboard_controller():
             return redirect(login_address)
 
         exercise_names = [str(e['name']) for e in exercises]
+
         return render_template('index.html', students=students, exercises=exercises, exercise_names=exercise_names)
 
 @app.route('/dashboard/student', methods=['GET'])
