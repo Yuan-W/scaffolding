@@ -72,8 +72,7 @@ def fetch_user_info(token):
     sql = "SELECT `expires`, `instructor`, `id` FROM `oauth_access_tokens` INNER JOIN users on `oauth_access_tokens`.`user_id`=`users`.`username` WHERE `access_token`=%s"
     cursor.execute(sql, (token, )) #SQL query for the user_id and expiration time
     row = cursor.fetchone()
-    cursor.close()
-    connection.close()
+    
 
     if row is None:
         return None
@@ -82,6 +81,16 @@ def fetch_user_info(token):
 
     if app.debug:        
         print(user_id, expires, instructor)
+
+    try:
+        int(instructor)
+    except ValueError:
+        sql = "SELECT `instructors`.`id` FROM `oauth_access_tokens` INNER JOIN users on `oauth_access_tokens`.`user_id`=`users`.`username` INNER JOIN instructors on `users`.`instructor`=`instructors`.`username` WHERE `access_token`=%s"
+        cursor.execute(sql, (token, ))
+        instructor = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
 
     if user_id and expires > datetime.now(): #if it was found check has it expired
         return user_id, int(instructor)
