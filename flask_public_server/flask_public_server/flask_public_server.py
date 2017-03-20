@@ -297,8 +297,9 @@ def dashboard_controller():
         
         students, exercises = fetch_students_and_exercises(instructor_id)
 
-        times = [['Exercise 1', 100], ['Exercise 2', 200], ['Exercise 3', 300], ['Exercise 4', 200]]
-        return render_template('index.html', students=students, exercises=exercises, times=times)
+        exercise_names = [str(e['name']) for e in exercises]
+        times = enumerate([100, 200, 300, 200,100])
+        return render_template('index.html', students=students, exercises=exercises, times=times, exercise_names=exercise_names)
 
     else:
         cache.delete_memoized(fetch_students_and_exercises)
@@ -306,8 +307,9 @@ def dashboard_controller():
         if students is None or exercises is None:
             return redirect(login_address)
 
+        exercise_names = [str(e['name']) for e in exercises]
         times = [['Exercise 1', 100], ['Exercise 2', 200], ['Exercise 3', 300], ['Exercise 4', 200]]
-        return render_template('index.html', students=students, exercises=exercises, times=times)
+        return render_template('index.html', students=students, exercises=exercises, times=times, exercise_names=exercise_names)
 
 @app.route('/dashboard/student')
 def student_controller():
