@@ -9,10 +9,10 @@ launch_private:
 	npm start --prefix test_runner/ &
 
 gunicorn_private:
-	gunicorn hints_provider:app -b :5001 --chdir hints_provider/hints_provider/ &
-	gunicorn stats_updater:app -b :5002 --chdir stats_updater/stats_updater/ &
-	gunicorn exercise_manager:app -b :5003 --chdir exercise_manager/exercise_manager/ &
-	gunicorn stats_analyser:app -b :5005 --chdir stats_analyser/stats_analyser/ &
+	gunicorn hints_provider:app --access-logfile hints_provider-access.log  --error-logfile hints_provider-error.log -b :5001 --chdir hints_provider/hints_provider/ &
+	gunicorn stats_updater:app --access-logfile stats_updater-access.log  --error-logfile stats_updater-error.log -b :5002 --chdir stats_updater/stats_updater/ &
+	gunicorn exercise_manager:app --access-logfile exercise_manager-access.log  --error-logfile exercise_manager-error.log -b :5003 --chdir exercise_manager/exercise_manager/ &
+	gunicorn stats_analyser:app --access-logfile stats_analyser-access.log  --error-logfile stats_analyser-error.log -b :5005 --chdir stats_analyser/stats_analyser/ &
 	npm start --prefix test_runner/ &
 
 shutdown_gunicorn:

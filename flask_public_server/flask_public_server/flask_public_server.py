@@ -74,7 +74,6 @@ def fetch_user_info(token):
     cursor.execute(sql, (token, )) #SQL query for the user_id and expiration time
     row = cursor.fetchone()
     
-
     if row is None:
         return None
 
@@ -105,9 +104,9 @@ def fetch_instructor_info(authorization_code):
     row = cursor.fetchone()
     cursor.close()
     connection.close()
-    expires, name, instructor_id = row
     if row is None:
         return None, 'User not found'
+    expires, name, instructor_id = row
     if expires < datetime.now(): #if it was found check has it expired
         return None, 'Code expired'
     return int(instructor_id), name
