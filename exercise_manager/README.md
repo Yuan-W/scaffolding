@@ -1,4 +1,4 @@
-## Test Management
+# Exercise Manager
 
 Manage tests for exercises.
 
@@ -6,36 +6,64 @@ Manage tests for exercises.
 
 Port: 5003
 
-### RESTful Endpoints
+## Installation
 
-#### READ
+Modify `config.py`.
 
-`/exercises/:exercise_id/tests/` #GET
+`pip install -r requirements.txt`
 
-**Parameters**:
+`FLASK_APP=exercise_manager/exercise_manager/exercise_manager.py flask initdb`
 
-Key | Type
----- | ------
-exercise_id | int
+## RESTful Endpoints
 
-#### CREATE
+#### Get all exercises
 
-`/exercises/:exercise_id/tests/` #POST
+| Title | Content |
+--- | ---
+URL | /exercises
+Method Allowed | GET
+Headers Required | Content-Type=application/json
+Successful Response | Code: HTTP 200 OK, <br>Content: {<br>id : [string], <br>name : [string], <br>description: [string], <br>template: [string] <br>}
+Error Responses |HTTP 400 400 Bad Request
 
-**Parameters**:
+#### Get all exercises for an instructor
 
-Key | Type
----- | ------
-exercise_id | int
-test_code | string
+| Title | Content |
+--- | ---
+URL | /exercises/\<instructor\_id\>
+Method Allowed | GET
+Headers Required | Content-Type=application/json
+Successful Response | Code: HTTP 200 OK, <br>Content: {<br>id : [string], <br>name : [string], <br>description: [string], <br>template: [string] <br>}
+Error Responses |HTTP 400 400 Bad Request
 
-#### UPDATE
+#### Get one exercise info
 
-`exercises/:exercise_id/tests/` #PUT
+| Title | Content |
+--- | ---
+URL | /exercise/\<exercise\_id\>
+Method Allowed | GET
+Headers Required | Content-Type=application/json
+Successful Response | Code: HTTP 200 OK, <br>Content: {<br>id : [string], <br>rev : [string], <br>instructor\_id : [integer], <br>name : [string], <br>test\_code : [string], <br>hints : [string], <br>description: [string], <br>template: [string] <br>}
+Error Responses |HTTP 400 400 Bad Request
 
-**Parameters**:
+#### Post new exercise
 
-Key | Type
----- | ------
-exercise_id | int
-test_code | string
+| Title | Content |
+--- | ---
+URL | /exercise/\<instructor\_id\>/\<exercise\_index\>
+Method Allowed | POST
+Headers Required | Content-Type=application/json
+Data Params |{<br>name : [string], <br>test\_code : [string], <br>hints : [string], <br>description : [string], <br>template : [string]<br>}
+Successful Response | Code: HTTP 201 Created, <br>Content: {<br>id : [string], <br>rev : [string]<br>}
+Error Responses |HTTP 400 400 Bad Request
+
+#### Fetch exercise names
+
+| Title | Content |
+--- | ---
+URL | /names
+Method Allowed | POST
+Headers Required | Content-Type=application/json
+Data Params |{<br>ids : [list]<br>}
+Successful Response | Code: HTTP 200 OK, <br>Content: {<br>id : [string], <br>name : [string]<br>}
+Error Responses |HTTP 400 400 Bad Request
