@@ -31,7 +31,7 @@ stats_parser.add_argument('hints_number', type=int, location='json', required=Tr
 
 class StatsUpdater(Resource):
     def get(self, student_id, exercise_id):
-        response = requests.get('%s/progress/_design/stats/_view/default?key=[%d,%d]' % (stats_db_url, student_id, exercise_id),
+        response = requests.get('%s/progress/_design/stats/_view/default?key=[%d,"%s"]' % (stats_db_url, student_id, exercise_id),
                                     headers={'Content-Type': 'application/json'
                                     })
         return response.json(), response.status_code
@@ -47,7 +47,7 @@ class StatsUpdater(Resource):
         data['test_status'] = args['test_status']
         data['code'] = args['code']
         data['hints_number'] = args['hints_number']
-        response = requests.post('%s/progress/_design/stats/_update/default/%d_%d' % (stats_db_url, student_id, exercise_id),
+        response = requests.post('%s/progress/_design/stats/_update/default/%d_%s' % (stats_db_url, student_id, exercise_id),
                                     data=json.dumps(data),
                                     headers={'Content-Type': 'application/json'
                                     })
@@ -124,7 +124,7 @@ def cleardb():
     print('Database cleared.')
 
 
-api.add_resource(StatsUpdater, '/stats/<int:student_id>/<int:exercise_id>')
+api.add_resource(StatsUpdater, '/stats/<int:student_id>/<exercise_id>')
 
 # @app.route('/get/<int:user_id>', methods=['GET'])
 # def get_stats():

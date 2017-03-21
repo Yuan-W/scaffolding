@@ -11,7 +11,6 @@ services:
   - mysql
 
 python:
-  - "2.6"
   - "2.7"
 
 env:
@@ -26,7 +25,7 @@ install:
   - pip install -r stats_updater/requirements.txt
   - pip install -r flask_public_server/requirements.txt
   - pip install -r stats_analyser/requirements.txt
-  - pip install -r test_management/requirements.txt
+  - pip install -r exercise_manager/requirements.txt
   - pip install coverage
   - nvm install node
   - nvm use node
@@ -34,11 +33,11 @@ install:
 
 before_script:
   - curl -X PUT localhost:5984/progress
-  - curl -X PUT localhost:5984/hints
   - touch flask_public_server/config.cfg
   - FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask initdb
   - FLASK_APP=flask_public_server/flask_public_server/flask_public_server.py flask seeddb
   - FLASK_APP=stats_updater/stats_updater/stats_updater.py flask initdb
+  - FLASK_APP=exercise_manager/exercise_manager/exercise_manager.py flask initdb
   - cd test_runner/setup && sh ./UpdateDocker.sh
   - cd ../../
   - npm install --prefix test_runner/

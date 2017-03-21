@@ -5,8 +5,28 @@ launch_private:
 	python  hints_provider/hints_provider/hints_provider.py &
 	python  stats_analyser/stats_analyser/stats_analyser.py &
 	python  stats_updater/stats_updater/stats_updater.py &
-	python  test_management/test_management/test_management.py &
+	python  exercise_manager/exercise_manager/exercise_manager.py &
 	npm start --prefix test_runner/ &
+
+gunicorn_private:
+	gunicorn hints_provider:app -b :5001 --chdir hints_provider/hints_provider/ &
+	gunicorn stats_updater:app -b :5002 --chdir stats_updater/stats_updater/ &
+	gunicorn exercise_manager:app -b :5003 --chdir exercise_manager/exercise_manager/ &
+	gunicorn stats_analyser:app -b :5005 --chdir stats_analyser/stats_analyser/ &
+	npm start --prefix test_runner/ &
+
+shutdown_gunicorn:
+	ps -ef | grep "hints_provider:app" | grep -v grep | awk '{print $$2}' | xargs kill
+	ps -ef | grep "stats_analyser:app" | grep -v grep | awk '{print $$2}' | xargs kill
+	ps -ef | grep "stats_updater:app" | grep -v grep | awk '{print $$2}' | xargs kill
+	ps -ef | grep "exercise_manager:app" | grep -v grep | awk '{print $$2}' | xargs kill
+	ps -ef | grep "app.js" | grep -v grep | awk '{print $$2}' | xargs kill
+
+gunicorn_public:
+	gunicorn flask_public_server:app --access-logfile gunicorn-access.log  --error-logfile gunicorn-error.log -b :5000 --chdir flask_public_server/flask_public_server/ &
+
+shutdown_gunicorn_public:
+	ps -ef | grep "flask_public_server:app" | grep -v grep | awk '{print $$2}' | xargs kill
 
 shutdown_public:
 	ps -ef | grep "flask_public_server/flask_public_server/flask_public_server.py" | grep -v grep | awk '{print $$2}' | xargs kill -9
@@ -15,9 +35,11 @@ shutdown_private:
 	ps -ef | grep "hints_provider/hints_provider/hints_provider.py" | grep -v grep | awk '{print $$2}' | xargs kill
 	ps -ef | grep "stats_analyser/stats_analyser/stats_analyser.py" | grep -v grep | awk '{print $$2}' | xargs kill
 	ps -ef | grep "stats_updater/stats_updater/stats_updater.py" | grep -v grep | awk '{print $$2}' | xargs kill
-	ps -ef | grep "test_management/test_management/test_management.py" | grep -v grep | awk '{print $$2}' | xargs kill
+	ps -ef | grep "exercise_manager/exercise_manager/exercise_manager.py" | grep -v grep | awk '{print $$2}' | xargs kill
 	ps -ef | grep "app.js" | grep -v grep | awk '{print $$2}' | xargs kill
 
 launch: launch_public launch_private;
 
 shutdown: shutdown_public shutdown_private;
+
+

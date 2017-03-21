@@ -4,7 +4,7 @@ import json
 import unittest
 
 student_id = 1
-exercise_id = 2
+exercise_id = "2"
 instructor_id = 3
 time_spent = 300
 code = 'code'
@@ -23,7 +23,7 @@ def post(app, student_id, exercise_id, test_status, time_spent, instructor_id, c
         request_data['hints_number'] = hints_number
     if code != None:
         request_data['code'] = code
-    return app.post('/stats/%d/%d' % (student_id, exercise_id), data=json.dumps(request_data), content_type='application/json')
+    return app.post('/stats/%d/%s' % (student_id, exercise_id), data=json.dumps(request_data), content_type='application/json')
 
 
 class StatsTestCase(unittest.TestCase):
@@ -74,10 +74,10 @@ class StatsTestCase(unittest.TestCase):
         self.doc_ids.append((doc_id, doc_rev))
 
 
-        response = self.app.get('/stats/%d/%d' % (student_id, exercise_id), content_type='application/json')
+        response = self.app.get('/stats/%d/%s' % (student_id, exercise_id), content_type='application/json')
         json_data = json.loads(response.data)
         self.assertEqual(200, response.status_code)
-        # print json_data
+        print json_data
         doc = json_data['rows'][0]
         self.assertEqual(doc_id, doc['id'])
         self.assertEqual(student_id, doc['value']['student_id'])
@@ -105,7 +105,7 @@ class StatsTestCase(unittest.TestCase):
         
         self.assertEqual(201, response.status_code)
 
-        response = self.app.get('/stats/%d/%d' % (student_id, exercise_id), content_type='application/json')
+        response = self.app.get('/stats/%d/%s' % (student_id, exercise_id), content_type='application/json')
         json_data = json.loads(response.data)
         self.assertEqual(200, response.status_code)
 

@@ -42,7 +42,7 @@ Error Response | None
 
 | Title | Content |
 --- | ---
-URL | /stats/\<int:student_id\>/\<int:exercise_id\>
+URL | /stats/\<int:student_id\>/\<exercise_id\>
 Method Allowed | POST
 Headers Required | Content-Type=application/json
 Data Params |{<br>instructor\_id : [int], <br>time\_spent : [int], <br>code : [string], <br>test\_status : [string], <br>hints\_number : [int]<br>}
