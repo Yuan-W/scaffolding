@@ -1,7 +1,7 @@
 {% extends layout %}
 {% block content %}
 <div id="Sign-In">
-	<form method="post" action="https://scaffolding.ml:5000/dashboard">
+	<form method="post" action="http://scaffolding.uksouth.cloudapp.azure.com:5000/dashboard">
         <label>Would you like to launch the dashboard now?</label><br />
         <input type="hidden" name="authorization_code" value="{{ authorization_code }}">
         <input type="submit" name="authorized" value="Yes">
