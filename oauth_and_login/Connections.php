@@ -14,18 +14,18 @@ class Connections
 {
     public static function dbConnect()
     {
-        $MYSQL_URL = env('MYSQL_URL', '');
+        $MYSQL_URL = env('MYSQL_URL', '127.0.0.1');
         $MYSQL_USER = env('MYSQL_USER', '');
         $MYSQL_PASSWORD = env('MYSQL_PASSWORD', '');
-        $MYSQL_DATABASE = env('MYSQL_DATABASE', '');
+        $MYSQL_DATABASE = env('MYSQL_DATABASE', 'oauth');
     
         return new \mysqli($MYSQL_URL, $MYSQL_USER, $MYSQL_PASSWORD, $MYSQL_DATABASE);
     }
 
     public static function createoAuthServer()
     {
-        $host = env('MYSQL_URL', '');
-        $dbname = env('MYSQL_DATABASE', '');
+        $host = env('MYSQL_URL', '127.0.0.1');
+        $dbname = env('MYSQL_DATABASE', 'oauth');
         $dsn = "mysql:dbname={$dbname};host={$host}";
         $username = env('MYSQL_USER', '');
         $password = env('MYSQL_PASSWORD', '');

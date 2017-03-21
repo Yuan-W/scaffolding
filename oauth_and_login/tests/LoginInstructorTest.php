@@ -17,7 +17,7 @@ class LoginInstructorTest extends WebTestCase
         
         $this->assertTrue($client->getResponse()->isOk());
         $this->assertCount(1, $crawler->filter('form'));
-        $this->assertCount(2, $crawler->filter('input'));
+        $this->assertCount(3, $crawler->filter('input'));
     }
     
     public function testInstructorSubmit()
