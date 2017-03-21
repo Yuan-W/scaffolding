@@ -17,12 +17,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.scaffoldStart",
-        "title": "Scaffolding: Start Exercise"
+        "command": "extension.scaffoldBegin",
+        "title": "Scaffolding: Begin Exercise"
       },
       {
-        "command": "extension.scaffoldEnd",
+        "command": "extension.scaffoldFinish",
         "title": "Scaffolding: Finish Exercise"
+      },
+      {
+        "command": "extension.requestHint",
+        "title": "Scaffolding: Request Hint"
       }
     ]
   },
@@ -40,6 +44,7 @@
     "mocha": "^2.3.3",
     "proxyquire": "^1.7.10",
     "sinon": "^1.17.7",
+    "sinon-stub-promise": "^4.0.0",
     "typescript": "^2.0.3",
     "vscode": "^1.0.0"
   }

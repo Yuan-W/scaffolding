@@ -1,45 +1,57 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import ApplicationState from './ApplicationState';
+import { documentTextChangeHandler, debounce } from './actions';
+import {
+    loginFlow,
+    createAccountFlow,
+    requestHintFlow,
+    selectExerciseFlow
+} from './flows';
 
-import CodeChanges from './CodeChanges';
-import CodeChangeSender from './CodeChangeSender';
+process.on('unhandledRejection', function(reason, p){
+    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+    vscode.window.showErrorMessage(reason);
+});
 
-export function documentTextChangeHandler(codeChanges, sender) {
-    return (e) => {
-        const { document } = e;
-        const text = document.getText();
-        codeChanges.updateChanges(text);
-        sender.resetSendInterval(5000);
-    };
-}
-
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Scaffolding is active!');
+    const state = new ApplicationState;
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
+    let documentChange = vscode.workspace.onDidChangeTextDocument(debounce(documentTextChangeHandler(state), 500));
 
-    let disposable = vscode.commands.registerCommand('extension.scaffoldStart', () => {
-        // The code you place here will be executed every time your command is executed
-
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Start Coding');
-
-        const codeChanges = new CodeChanges;
-        const sender = new CodeChangeSender(codeChanges);
-
-        let listener = vscode.workspace.onDidChangeTextDocument(documentTextChangeHandler(codeChanges, sender));
-
-        context.subscriptions.push(listener);
+    let scaffoldBegin = vscode.commands.registerCommand('extension.scaffoldBegin', () => {
+        if (!state.isAuthenticated) {
+            return vscode.window.showInformationMessage('Do you have an account?', 'Yes', 'No')
+                .then(option => {
+                    if (option === 'Yes') {
+                        return loginFlow(vscode, state);
+                    }
+                    return createAccountFlow(vscode);
+                })
+                .then(() => {
+                    return selectExerciseFlow(vscode, state);
+                })
+                .then(() => {
+                    vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
+                });
+        }
+        return selectExerciseFlow(vscode, state)
+            .then( () => {
+                vscode.window.showInformationMessage('Start Coding, you can request a hint any time');
+            });
     });
 
-    context.subscriptions.push(disposable);
+    let requestHint = vscode.commands.registerCommand('extension.requestHint', () => {
+        if (!state.isAuthenticated) {
+            return vscode.window.showWarningMessage('Please run \'Scaffolding: begin exercise\' first');
+        }
+        return requestHintFlow(vscode, state);
+    });
+
+    context.subscriptions.push(documentChange);
+    context.subscriptions.push(scaffoldBegin);
+    context.subscriptions.push(requestHint);
 }
 
 // this method is called when your extension is deactivated
