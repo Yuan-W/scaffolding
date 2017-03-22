@@ -11,8 +11,9 @@ Follow the installation instruction in each app.
 
 
 # Services and Ports
-| Service | Port
---- | --- | ---
+
+Service | Port
+--- | --- 
 PublicServer | 5000
 HintsProvider | 5001
 StatsAnalyser | 5005
