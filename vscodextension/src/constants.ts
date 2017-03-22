@@ -6,8 +6,8 @@ const HTTP_PREFIX = production ? 'https://' : 'http://';
 const BASE_URL = HTTP_PREFIX + DOMAIN;
 const PUBLIC_API = 'http://' + DOMAIN + ':5000/api';
 
-export const clientId = 'testclient';
-const client_password = 'testpass';
+export const clientId = 'VSCode';
+const client_password = 'gs02Scaff!';
 
 
 export const LOGIN_URL = BASE_URL + '/login';

@@ -52,7 +52,7 @@ $app->post('/login/instructor', function (Request $request) use ($app) {
 
     if ($count == 1) {
         $app['session']->set('login_user', $user);
-        return $app->redirect('/instructor/authorize?response_type=code&client_id=testclient&state=xyz');
+        return $app->redirect('/instructor/authorize?response_type=code&client_id=Dashboard&state=xyz');
     } else {
         $app['session']->getFlashBag()->set('error', 'Username or Password incorrect.');
         return $app->redirect('/login/instructor');
@@ -113,7 +113,7 @@ $app->post('/login', function (Request $request) use ($app) {
 
     if ($count == 1) {
         $app['session']->set('login_user', $user);
-        return $app->redirect('/authorize?response_type=code&client_id=testclient&state=xyz');
+        return $app->redirect('/authorize?response_type=code&client_id=VSCode&state=xyz');
     } else {
         $app['session']->getFlashBag()->set('error', 'Username or Password incorrect.');
         return $app->redirect('/login');
