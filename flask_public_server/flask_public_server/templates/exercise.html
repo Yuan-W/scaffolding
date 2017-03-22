@@ -22,6 +22,7 @@
                                 <th>Student</th>
                                 <th>Number of Hints Required</th>
                                 <th>Time Spent</th>
+                                <th>Test Result</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -30,6 +31,7 @@
                                 <td class="center">{{student['name']}}</td>
                                 <td class="center">{{student['hints_number']}}</td>
                                 <td class="center">{{student['time_spent']}}</td>
+                                <td class="center">{% if 'test_status' in student %} Failed: {{student['test_status']['failed']['number']}} Passed: {{student['test_status']['passed']['number']}} {% endif %}</td>
                             </tr>
                         {% endfor %}
                         </tbody>

@@ -1,5 +1,5 @@
 import os
-from json import dumps
+import json
 from datetime import datetime
 import requests
 from flask import Flask, Response, request, render_template, abort, session, redirect, url_for
@@ -164,7 +164,7 @@ def forward_stats():
     if app.debug:
         print(req.text)
     if 'Content-Type' in req.headers:
-        resp = Response(dumps(req.json()), mimetype='application/json')
+        resp = Response(json.dumps(req.json()), mimetype='application/json')
         #resp.set_data(req.json()) #fill a response
         return resp #serve it back
     else:
@@ -194,7 +194,7 @@ def forward_exercises():
     if app.debug:
         print(req.text)
     if 'Content-Type' in req.headers:
-        resp = Response(dumps(req.json()), mimetype='application/json')
+        resp = Response(json.dumps(req.json()), mimetype='application/json')
         #resp.set_data(req.json()) #fill a response
         return resp #serve it back
     else:
@@ -234,7 +234,8 @@ def forward_hints():
     post_data['instructor_id'] = instructor_id
     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
-    print(dumps(post_data))
+    if app.debug:
+        print(json.dumps(post_data))
 
     response = requests.post(server_hints, json=post_data, headers=headers) #forward POST
 
@@ -243,7 +244,7 @@ def forward_hints():
 
     if 'Content-Type' in response.headers and \
         response.headers['Content-Type'] == 'application/json': #check reply
-        return Response(dumps(response.json()), mimetype='application/json') #serve it back
+        return Response(json.dumps(response.json()), mimetype='application/json') #serve it back
     else:
         return Response("No JSON received in hints response payload\n", status='500')
 
@@ -270,8 +271,9 @@ def fetch_students_and_exercises(instructor_id):
     exercises = sorted(exercises, key=lambda k: k['name'])
 
     for student in students:
-        stat = [s for s in student_stats if s['student_id'] == student['id']][0]
-        student.update(stat)
+        stat = [s for s in student_stats if s['student_id'] == student['id']]
+        if stat:
+            student.update(stat[0])
     students = sorted(students, key=lambda k: k['name']) 
 
     return students, exercises
@@ -324,6 +326,8 @@ def student_controller():
     for doc in docs:
         exercise_name = [s for s in exercises if s['id'] == doc['exercise_id']][0]
         doc['name'] = exercise_name['name']
+        json_status = doc['test_status']
+        doc['test_status'] = json.loads(json_status)
 
     this_student = [ s for s in students if s['id'] == int(student_id) ][0]
     student = {'name': this_student['name'],
@@ -344,6 +348,7 @@ def exercise_controller():
     for doc in docs:
         student_name = [s for s in students if s['id'] == doc['student_id']][0]
         doc['name'] = student_name['name']
+        doc['test_status'] = json.loads(doc['test_status'])
 
     exercise = {'name': this_exercise['name'],
                 'students': docs}

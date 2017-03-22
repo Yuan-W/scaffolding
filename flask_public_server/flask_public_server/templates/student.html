@@ -22,6 +22,7 @@
                                 <th>Exercise</th>
                                 <th>Number of Hints Required</th>
                                 <th>Time Spent</th>
+                                <th>Test Result</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -30,6 +31,7 @@
                                 <td class="center">{{exercise['name']}}</td>
                                 <td class="center">{{exercise['hints_number']}}</td>
                                 <td class="center">{{exercise['time_spent']}}</td>
+                                <td class="center">{% if 'test_status' in exercise %} Failed: {{exercise['test_status']['failed']['number']}} Passed: {{exercise['test_status']['passed']['number']}} {% endif %}</td>
                             </tr>
                         {% endfor %}
                         </tbody>

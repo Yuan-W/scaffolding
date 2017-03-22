@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from flask import Flask, request, jsonify, abort
 from flask_restful import reqparse, Api, Resource, marshal_with, fields
 from config import Development, Production, Testing
@@ -89,7 +90,7 @@ class HintsProvider(Resource):
                 'hints_number': args['hints_number'],
                 'time_spent': args['time_spent'],
                 'code': code,
-                'test_status': test_result
+                'test_status': json.dumps(test_result)
                 }
         response = store_stats(student_id, exercise_id, stat)
         if response[1] == 201:
