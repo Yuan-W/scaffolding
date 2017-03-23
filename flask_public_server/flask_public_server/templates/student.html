@@ -1,4 +1,130 @@
 {% extends "layout.html" %}
+{% block script %}
+<script src="{{ url_for('static', filename='vendor/flot/excanvas.min.js') }} "></script>
+<script src="{{ url_for('static', filename='vendor/flot/jquery.flot.js') }} "></script>
+<script src="{{ url_for('static', filename='vendor/flot/jquery.flot.pie.js') }} "></script>
+<script src="{{ url_for('static', filename='vendor/flot/jquery.flot.resize.js') }} "></script>
+<script src="{{ url_for('static', filename='vendor/flot/jquery.flot.time.js') }} "></script>
+<script src="{{ url_for('static', filename='vendor/flot-tooltip/jquery.flot.tooltip.min.js') }} "></script>
+<script>
+
+$(function() {
+   var time_spent = [{% for exercise in student['exercises'] %}
+                   {{ [loop.index*10, exercise['time_spent']] }},
+                   {% endfor %}];
+   var hints_number = [{% for exercise in student['exercises'] %}
+                   {{ [loop.index*10, exercise['hints_number']] }},
+                   {% endfor %}];
+   var data_names = [{% for exercise in student['exercises'] %}
+                   '{{ exercise["name"] }}',
+                   {% endfor %}];
+   var ticks_data = [];
+
+   for(var i = 0; i < data_names.length; i++){
+       ticks_data.push([i*10+12.5, data_names[i]])
+   }
+
+var data_time = [
+   {
+       label: "Time Spent",
+       data: time_spent,
+       bars: {
+           show: true,
+           barWidth: 5,
+           fill: true,
+           lineWidth:0,
+           order: 1,
+           fillColor:  {
+           colors: ["#80C3FD", "#0089FF"] 
+       }
+       },
+       color: "#0089FF"
+   },
+];
+var data_hints = [
+   {
+       label: "Hints Requested",
+       data: hints_number,
+       bars: {
+           show: true,
+           barWidth: 5,
+           fill: true,
+           lineWidth:0,
+           order: 1,
+           fillColor:  {
+           colors: ["#80C3FD", "#0089FF"] 
+       }
+       },
+       color: "#0089FF"
+   },
+];
+
+var lineData = {
+    label: "average",
+    data: [[0, 233], [5, 233]],
+    lines: {
+        show: true,
+        lineWidth: 1
+    }
+};
+
+var options = {
+   xaxis: {
+       tickLength: 0, // hide gridlines
+       axisLabelUseCanvas: true,
+       axisLabelFontSizePixels: 12,
+       axisLabelFontFamily: 'Verdana, Arial, Helvetica, Tahoma, sans-serif',
+       axisLabelPadding: 100,
+       ticks: ticks_data,
+   },
+   yaxis: {
+       axisLabel: 's',
+       axisLabelUseCanvas: true,
+       axisLabelFontSizePixels: 12,
+       axisLabelFontFamily: 'Verdana, Arial, Helvetica, Tahoma, sans-serif',
+       axisLabelPadding: 5
+
+   },
+   grid: {
+       hoverable: true,
+       clickable: false,
+       borderWidth: 0,
+       borderColor:'#f0f0f0',
+       labelMargin:8,
+   },
+   series: {
+       shadowSize: 1,
+
+   },
+   legend: { show: false}
+}
+
+var p = $.plot($("#time-bar-chart"), data_time, options);
+
+$.each(p.getData()[0].data, function(i, el){
+ var o = p.pointOffset({x: el[0], y: el[1]});
+ $('<div class="data-point-label">' + el[1] + 's</div>').css( {
+   position: 'absolute',
+   left: o.left+15,
+   top: o.top - 20,
+   display: 'none'
+ }).appendTo(p.getPlaceholder()).fadeIn('slow');
+});
+
+var q = $.plot($("#hints-bar-chart"), data_hints, options);
+
+$.each(q.getData()[0].data, function(i, el){
+ var o = q.pointOffset({x: el[0], y: el[1]});
+ $('<div class="data-point-label">' + el[1] + '</div>').css( {
+   position: 'absolute',
+   left: o.left+15,
+   top: o.top - 20,
+   display: 'none'
+ }).appendTo(q.getPlaceholder()).fadeIn('slow');
+});
+});
+</script>
+{% endblock %}
 {% block body %}
 <div id="page-wrapper">
     <div class="row">
@@ -21,7 +147,7 @@
                             <tr>
                                 <th>Exercise</th>
                                 <th>Number of Hints Required</th>
-                                <th>Time Spent</th>
+                                <th>Time Spent (seconds)</th>
                                 <th>Test Result</th>
                             </tr>
                         </thead>
@@ -45,6 +171,40 @@
         <!-- /.col-lg-12 -->
     </div>
     <!-- /.row -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Time spent
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div class="flot-chart">
+                        <div class="flot-chart-content" id="time-bar-chart"></div>
+                    </div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-lg-6 -->
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Hints requested
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div class="flot-chart">
+                        <div class="flot-chart-content" id="hints-bar-chart"></div>
+                    </div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-lg-6 -->
+    </div>
 </div>
 <!-- /#page-wrapper -->
 {% endblock %}
