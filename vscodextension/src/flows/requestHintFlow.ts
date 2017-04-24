@@ -11,7 +11,7 @@ export function requestHintFlow(vscode, state: ApplicationState) {
     }
     const { exerciseId, studentId, startTime, tokens, hints_number } = state;
     const { access_token } = tokens;
-    const timeSpent = Date.now() - startTime;
+    const timeSpent = (Date.now() - startTime) / 1000;
 
     const payload = {
         headers: {
@@ -19,7 +19,7 @@ export function requestHintFlow(vscode, state: ApplicationState) {
             'Content-Type': 'application/json'
         },
         data: {
-            code: JSON.stringify(code).slice(1, -1),
+            code,
             time_spent: timeSpent,
             exercise_id: exerciseId,
             hints_number
@@ -28,6 +28,7 @@ export function requestHintFlow(vscode, state: ApplicationState) {
 
     return fetchHints(payload)
         .then((data) => {
+            console.log(data);
             const { hints = 'This is a hint', student_id } = data;
             state.setStudent(student_id);
             state.incrementHintsNumber();
