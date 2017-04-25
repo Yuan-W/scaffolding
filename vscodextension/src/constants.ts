@@ -7,7 +7,7 @@ const BASE_URL = HTTP_PREFIX + DOMAIN;
 const PUBLIC_API = 'http://' + DOMAIN + ':5000/api';
 
 export const clientId = 'VSCode';
-const client_password = 'gs02Scaff!';
+const client_password = 'password';
 
 
 export const LOGIN_URL = BASE_URL + '/login';
